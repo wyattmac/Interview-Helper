@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import BriefCard from "./BriefCard.jsx";
 import Flashcards from "./Flashcards.jsx";
 import QuickQuiz from "./QuickQuiz.jsx";
+import VoiceMock from "./VoiceMock.jsx";
 import LiveListen from "./LiveListen.jsx";
 import { useLiveCoach } from "./useLiveCoach.js";
 
@@ -89,6 +90,7 @@ function MockInterviewView() {
   const [answerTranscript, setAnswerTranscript] = useState("");
   const [grade, setGrade] = useState(null);
   const [scores, setScores] = useState([]); // { stepId, score }
+  const [mode, setMode] = useState("voice"); // voice | classic
   const audioRef = useRef(null);
   const coachAbortRef = useRef(null);
   const recordCaptureRef = useRef(null);
@@ -273,6 +275,24 @@ function MockInterviewView() {
 
   return (
     <section className="mock">
+      <div className="mode-toggle" role="group" aria-label="Mock mode">
+        <button
+          className={mode === "voice" ? "active" : ""}
+          onClick={() => setMode("voice")}
+        >
+          Voice (Think Fast 2.0)
+        </button>
+        <button
+          className={mode === "classic" ? "active" : ""}
+          onClick={() => setMode("classic")}
+        >
+          Classic (scripted + grading)
+        </button>
+      </div>
+
+      {mode === "voice" ? <VoiceMock /> : null}
+      {mode === "classic" ? (
+        <>
       <div className="control-bar">
         <div>
           <p className="label">{script.title}</p>
@@ -436,6 +456,8 @@ function MockInterviewView() {
           )}
         </div>
       </div>
+        </>
+      ) : null}
     </section>
   );
 }

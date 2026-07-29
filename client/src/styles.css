@@ -600,6 +600,56 @@ blockquote {
   color: var(--amber);
 }
 
+.mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mode-toggle button {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  padding: 9px 14px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.mode-toggle button.active {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: #1a1205;
+  font-weight: 700;
+}
+
+.voice-bar {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.voice-model {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.voice-live {
+  margin-top: 12px;
+}
+
+.voice-transcript {
+  max-height: 46vh;
+  overflow: auto;
+  padding: 10px 12px;
+  background: rgba(238, 243, 238, 0.03);
+  border: 1px solid var(--line);
+}
+
+.voice-transcript p {
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
 .mock-score-line {
   margin: 10px 0 0;
   color: #d7e6dd;

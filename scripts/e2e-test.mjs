@@ -70,6 +70,12 @@ async function main() {
 
   console.log("\n== Mock interview ==");
   await page.locator(".tabs button", { hasText: "Mock interview" }).click();
+  await page.waitForSelector(".mode-toggle", { timeout: 10000 });
+  check("mode toggle shows voice + classic", (await page.locator(".mode-toggle button").count()) === 2);
+  check("voice mode default", (await page.locator(".mode-toggle button.active").innerText()).includes("Voice"));
+  check("voice start button", (await page.locator("button", { hasText: "Start voice mock" }).count()) === 1);
+  // Switch to classic scripted mode for deterministic checks
+  await page.locator(".mode-toggle button", { hasText: "Classic" }).click();
   await page.waitForSelector(".mock-question");
   check("mock question loaded", (await page.locator(".mock-question").innerText()).includes("Wyatt"));
   const speakResp = page.waitForResponse((r) => r.url().includes("/api/mock-interview/speak") && r.status() === 200, { timeout: 30000 });

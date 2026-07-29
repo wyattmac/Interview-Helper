@@ -20,6 +20,7 @@ import {
   getMockInterview,
   synthesizeSpeech,
 } from "./mockInterview.js";
+import { attachVoiceProxy } from "./voiceProxy.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -281,9 +282,23 @@ if (existsSync(DIST)) {
 }
 
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server, path: "/ws/stt" });
+// One WebSocketServer owns the HTTP upgrade for both paths; multiple WSS
+// instances on the same server reject each other's handshakes with 400.
+const wss = new WebSocketServer({ server });
 
-wss.on("connection", (client) => {
+wss.on("connection", (client, req) => {
+  if (req.url?.startsWith("/ws/voice")) {
+    attachVoiceProxy(client, { apiKey: XAI_API_KEY });
+    return;
+  }
+  if (!req.url?.startsWith("/ws/stt")) {
+    client.close(1008, "Unknown websocket path");
+    return;
+  }
+  handleSttConnection(client);
+});
+
+function handleSttConnection(client) {
   if (!XAI_API_KEY) {
     client.send(
       JSON.stringify({
@@ -438,7 +453,7 @@ wss.on("connection", (client) => {
       upstream.close();
     }
   });
-});
+}
 
 async function createTopicBrief(transcript) {
   const run = () =>
