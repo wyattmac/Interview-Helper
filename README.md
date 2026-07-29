@@ -40,10 +40,10 @@ Your `XAI_API_KEY` stays on the server. The browser never sees it; `/ws/stt` pro
 | --- | --- | --- |
 | `XAI_API_KEY` | _(required)_ | xAI API key |
 | `PORT` | `8787` | Server port |
-| `XAI_MODEL` | `grok-4.3` | Chat model for live briefs (`reasoning_effort: none`) |
+| `XAI_MODEL` | `grok-4.5` | Chat model for live briefs (`reasoning_effort: none` for speed) |
 | `XAI_STT_SAMPLE_RATE` | `16000` | PCM sample rate sent to STT |
 
-If the default model isn’t available on your account, set `XAI_MODEL` to another chat model from the [xAI console](https://console.x.ai/) (for example `grok-4.5`).
+If you want a cheaper/faster fallback, set `XAI_MODEL=grok-4.20-0309-non-reasoning` or `grok-4.3`.
 
 ## Personalized for Wyatt Locklear
 

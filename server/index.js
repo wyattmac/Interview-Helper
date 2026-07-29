@@ -18,7 +18,7 @@ const DIST = join(ROOT, "dist");
 
 const PORT = Number(process.env.PORT || 8787);
 const XAI_API_KEY = process.env.XAI_API_KEY || "";
-const XAI_MODEL = process.env.XAI_MODEL || "grok-4.3";
+const XAI_MODEL = process.env.XAI_MODEL || "grok-4.5";
 const SAMPLE_RATE = Number(process.env.XAI_STT_SAMPLE_RATE || 16000);
 
 const KEYTERMS = [
