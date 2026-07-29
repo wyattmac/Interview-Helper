@@ -511,6 +511,70 @@ blockquote {
   color: #ffe9c4;
 }
 
+.answer-options {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.option {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  padding: 12px 14px;
+  background: rgba(238, 243, 238, 0.04);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  border-radius: 2px;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.option:hover {
+  transform: translateY(-1px);
+  border-color: rgba(238, 243, 238, 0.3);
+}
+
+.option.picked {
+  border-color: var(--amber);
+  background: var(--amber-dim);
+}
+
+.option-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.option-safe .option-label {
+  color: var(--teal);
+}
+
+.option-strong .option-label {
+  color: var(--amber);
+}
+
+.option-honest .option-label {
+  color: #9db8ff;
+}
+
+.option-text {
+  font-size: clamp(0.98rem, 1.8vw, 1.12rem);
+  line-height: 1.4;
+  font-weight: 500;
+  color: #f2f7f3;
+}
+
+.picked-note {
+  margin: 8px 0 0;
+  color: var(--teal);
+  font-size: 0.88rem;
+}
+
+.picked-note strong {
+  color: var(--amber);
+}
+
 .brief-hero ul {
   margin-top: 10px;
 }

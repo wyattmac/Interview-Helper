@@ -373,7 +373,7 @@ async function createTopicBrief(transcript) {
       body: JSON.stringify({
         model: XAI_MODEL,
         temperature: 0.3,
-        max_tokens: 450,
+        max_tokens: 800,
         reasoning_effort: REASONING_EFFORT,
         response_format: { type: "json_object" },
         messages: [
@@ -402,13 +402,48 @@ async function createTopicBrief(transcript) {
   if (!content) throw new Error("Empty model response");
 
   const parsed = parseJsonLoose(content);
+
+  const allowedStyles = ["safe", "strong", "honest"];
+  let answerOptions = Array.isArray(parsed.answerOptions)
+    ? parsed.answerOptions
+        .filter(
+          (o) =>
+            o &&
+            allowedStyles.includes(o.style) &&
+            typeof o.text === "string" &&
+            o.text.trim(),
+        )
+        .map((o) => ({ style: o.style, text: String(o.text).trim() }))
+    : [];
+
+  // Guarantee 3 options, one per style, so the UI always has a choice.
+  if (answerOptions.length < 3) {
+    const byStyle = new Map(answerOptions.map((o) => [o.style, o]));
+    const fallbackText = String(parsed.sayThis || "").trim();
+    answerOptions = allowedStyles.map((style) => {
+      if (byStyle.has(style)) return byStyle.get(style);
+      return {
+        style,
+        text:
+          fallbackText ||
+          "Answer briefly and honestly, then offer a specific example.",
+      };
+    });
+  }
+
+  const sayThis =
+    String(parsed.sayThis || "").trim() ||
+    answerOptions.find((o) => o.style === "strong")?.text ||
+    answerOptions[0].text;
+
   return {
     topic: String(parsed.topic || "General discussion"),
     whyItMatters: String(parsed.whyItMatters || ""),
     talkingPoints: Array.isArray(parsed.talkingPoints)
       ? parsed.talkingPoints.map(String).slice(0, 3)
       : [],
-    sayThis: String(parsed.sayThis || ""),
+    sayThis,
+    answerOptions,
     watchOut: String(parsed.watchOut || ""),
     storyToUse: String(parsed.storyToUse || ""),
     confidence: ["high", "medium", "low"].includes(parsed.confidence)
@@ -420,12 +455,93 @@ async function createTopicBrief(transcript) {
 }
 
 function parseJsonLoose(content) {
+  // Strip code fences and surrounding prose.
+  let text = String(content).trim();
+  text = text.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+
   try {
-    return JSON.parse(content);
+    return JSON.parse(text);
   } catch {
-    const match = content.match(/\{[\s\S]*\}/);
-    if (match) return JSON.parse(match[0]);
-    throw new Error("Model returned non-JSON brief");
+    /* fall through to repairs */
+  }
+
+  // Take the largest balanced {...} block.
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start !== -1 && end > start) {
+    const candidate = text.slice(start, end + 1);
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // Common model mistakes: trailing commas before } or ].
+      const noTrailingCommas = candidate.replace(/,\s*([}\]])/g, "$1");
+      try {
+        return JSON.parse(noTrailingCommas);
+      } catch {
+        /* keep trying */
+      }
+      // Truncated output: close any open arrays/objects.
+      const fixed = closeOpenJson(noTrailingCommas);
+      if (fixed) return JSON.parse(fixed);
+    }
+  }
+
+  throw new Error("Model returned non-JSON brief");
+}
+
+function closeOpenJson(text) {
+  // If output was truncated mid-JSON, drop the last partial value and close.
+  let inString = false;
+  let escape = false;
+  const stack = [];
+  for (const ch of text) {
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escape = true;
+      continue;
+    }
+    if (ch === '"') inString = !inString;
+    if (inString) continue;
+    if (ch === "{" || ch === "[") stack.push(ch);
+    if (ch === "}" || ch === "]") stack.pop();
+  }
+  if (!stack.length) return null;
+  // Cut back to the last complete token boundary, then close open brackets.
+  let cut = text.length;
+  const delimiters = [",", ":", "{", "["];
+  while (cut > 0 && !delimiters.includes(text[cut - 1])) cut -= 1;
+  let trimmed = text.slice(0, Math.max(1, cut - 1));
+  // Remove any trailing commas.
+  trimmed = trimmed.replace(/,\s*$/, "");
+  let closing = "";
+  // Rebuild the stack on the trimmed text.
+  inString = false;
+  escape = false;
+  stack.length = 0;
+  for (const ch of trimmed) {
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escape = true;
+      continue;
+    }
+    if (ch === '"') inString = !inString;
+    if (inString) continue;
+    if (ch === "{" || ch === "[") stack.push(ch);
+    if (ch === "}" || ch === "]") stack.pop();
+  }
+  for (let i = stack.length - 1; i >= 0; i -= 1) {
+    closing += stack[i] === "{" ? "}" : "]";
+  }
+  try {
+    return JSON.parse(trimmed + closing) ? trimmed + closing : null;
+  } catch {
+    return null;
   }
 }
 
