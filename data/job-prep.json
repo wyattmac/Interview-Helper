@@ -1,0 +1,139 @@
+{
+  "role": {
+    "title": "Equipment Services Technician",
+    "requisition": "2372180",
+    "company": "Optum / UnitedHealth Group",
+    "location": "4015 Shopton Rd, Charlotte, NC 28217",
+    "schedule": "Sunday–Thursday, 2:00 pm – 11:30 pm (2nd shift, 6% shift differential)",
+    "saturdayOt": "Occasional Saturday 6:00 am – 2:30 pm",
+    "pay": "$29.00 – $52.00 / hour",
+    "travel": "Up to 10% domestic",
+    "onsite": true
+  },
+  "mustSell": [
+    "5+ years repairing / troubleshooting automated manufacturing or distribution lines",
+    "3-phase 480V industrial electrical, conduit, motor control circuits",
+    "CMMS or SAP for work orders, parts, hours",
+    "Electrical / mechanical / pneumatic troubleshooting under production pressure",
+    "Microsoft Suite for documentation and communication",
+    "Comfortable standing/walking a full shift and filling in across shifts"
+  ],
+  "preferred": [
+    "Allen-Bradley / Rockwell PLC, HMI, RSLogix 500/5000, Studio 5000",
+    "Beckhoff PLCs",
+    "Robotics on automated packaging / pharmacy lines"
+  ],
+  "dayInLife": [
+    "Check sensors and walk the line before/during production",
+    "Respond to radio service calls quickly; restore uptime",
+    "Maintain pill dispensers and mail-order pharmacy automation",
+    "Work work orders in CMMS/SAP; track parts and labor hours",
+    "Support install, setup, and prototyping of improvement projects"
+  ],
+  "likelyQuestions": [
+    {
+      "q": "Walk me through how you troubleshoot a machine that suddenly stops on the line.",
+      "intent": "Structured method under pressure — safety first, then isolate electrical/mechanical/pneumatic/controls.",
+      "starHint": "Situation: unexpected stoppage on a high-throughput line. Task: restore safely and fast. Action: lockout/tagout if needed, check e-stops/sensors/air/PLC faults, use prints/HMI. Result: root cause + uptime + documentation."
+    },
+    {
+      "q": "Tell me about a time you diagnosed a 480V / motor control issue.",
+      "intent": "Prove real industrial electrical experience, not just swapping parts.",
+      "starHint": "Mention verifying power, contactor/overload, VFDs, phase imbalance, grounding, and when you escalate vs. fix yourself."
+    },
+    {
+      "q": "How do you use CMMS or SAP day to day?",
+      "intent": "They want documented, prioritized maintenance — not hero firefighting only.",
+      "starHint": "Open WO → diagnose → parts issue → labor hours → close with notes that help the next tech."
+    },
+    {
+      "q": "Have you worked with Allen-Bradley / Studio 5000 / RSLogix?",
+      "intent": "Preferred PLC stack for this site. Be honest about depth.",
+      "starHint": "Describe reading ladder/tags, forcing carefully, trending faults, coordinating with controls engineers, never downloading blindly."
+    },
+    {
+      "q": "This role is Sun–Thu 2nd shift with occasional Saturday OT. Are you flexible?",
+      "intent": "Hard schedule requirement — answer clearly yes if true.",
+      "starHint": "Confirm availability explicitly; mention prior shift experience if you have it."
+    },
+    {
+      "q": "Describe maintaining pneumatic systems on packaging or automation equipment.",
+      "intent": "Pharmacy lines use lots of air: cylinders, valves, vacuum, regulators.",
+      "starHint": "Leak checks, solenoid valves, pressure setpoints, dirty filters, sticky cylinders, interlocks tied to sensors."
+    },
+    {
+      "q": "How do you prioritize when multiple machines are down and production is waiting?",
+      "intent": "Radio calls + triage judgment.",
+      "starHint": "Safety → bottleneck/throughput impact → quick restores vs. long repairs → communicate ETA on radio."
+    },
+    {
+      "q": "Why Optum / mail-order pharmacy automation?",
+      "intent": "Culture fit + mission without fluff.",
+      "starHint": "Tie hands-on automation skills to reliable medication fulfillment and patient impact; emphasize ownership and learning."
+    }
+  ],
+  "technicalFlashcards": [
+    {
+      "term": "3-phase 480V",
+      "talkTrack": "Industrial distribution voltage. Be ready to discuss LOTO, PPE, verifying absence of voltage, phase rotation, and motor starters/overloads."
+    },
+    {
+      "term": "Motor control circuit",
+      "talkTrack": "Control power vs. power circuit: start/stop, interlocks, contactors, overloads, aux contacts, and how a failed sensor can drop out a run permissive."
+    },
+    {
+      "term": "PLC / HMI (AB / Beckhoff)",
+      "talkTrack": "Use fault codes and HMI alarms first. Trace inputs/outputs, check sensor status bits, review recent program changes, document tag/fault before clearing."
+    },
+    {
+      "term": "Pneumatics",
+      "talkTrack": "Compressed air quality and pressure stability matter. Isolate circuit, verify regulator/gauge, listen for leaks, check valve actuation and cylinder cushions."
+    },
+    {
+      "term": "Sensors on the line",
+      "talkTrack": "Daily sensor checks catch misalignment, dirty optics, loose mounts, and drift before they cause nuisance stops or bad counts."
+    },
+    {
+      "term": "CMMS / SAP",
+      "talkTrack": "Work order hygiene: clear problem statement, root cause, parts used, time, and follow-up PMs. Inventory accuracy keeps mean-time-to-repair down."
+    },
+    {
+      "term": "Pill dispensers / pharmacy automation",
+      "talkTrack": "Accuracy and uptime are clinical-adjacent. Emphasize careful calibration, cleanliness, change control, and escalating software/controls issues properly."
+    },
+    {
+      "term": "Robotic cells",
+      "talkTrack": "Respect interlocks and safety circuits. Know teach pendant basics, collision recovery, and when to call OEM/robotics support."
+    }
+  ],
+  "answerFormulas": [
+    {
+      "name": "Troubleshoot formula",
+      "steps": [
+        "Make it safe (LOTO / e-stop / PPE)",
+        "Define the symptom precisely (what, when, alarms, last change)",
+        "Check utilities (power, air, vacuum, network)",
+        "Read HMI/PLC faults and sensor states",
+        "Isolate mechanical vs electrical vs pneumatic vs controls",
+        "Fix, test in manual then auto, monitor",
+        "Document in CMMS and communicate on radio"
+      ]
+    },
+    {
+      "name": "STAR for maintenance stories",
+      "steps": [
+        "Situation: equipment + production impact",
+        "Task: your ownership / time pressure",
+        "Action: diagnostic steps with tools/prints/PLC",
+        "Result: uptime restored, scrap avoided, PM improvement"
+      ]
+    }
+  ],
+  "questionsToAskThem": [
+    "What are the highest-failure assets on the Charlotte mail-order line today?",
+    "How is the tech team split between reactive calls vs. planned maintenance?",
+    "Which PLC platforms and OEM equipment should I expect in the first 90 days?",
+    "What does success look like after on-the-job training on 2nd shift?",
+    "How do improvement / prototyping projects get prioritized with production?"
+  ]
+}
