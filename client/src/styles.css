@@ -291,6 +291,31 @@ button {
   font-size: 0.8rem;
 }
 
+.who {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid var(--line);
+}
+
+.who-interviewer {
+  color: var(--amber);
+  border-color: rgba(226, 165, 74, 0.5);
+}
+
+.who-you {
+  color: var(--teal);
+  border-color: rgba(62, 207, 154, 0.4);
+}
+
+.speaker-interviewer {
+  background: rgba(226, 165, 74, 0.05);
+}
+
 .partial {
   color: #c5d7cc;
   opacity: 0.75;

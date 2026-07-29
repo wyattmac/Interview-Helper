@@ -223,6 +223,7 @@ wss.on("connection", (client) => {
     encoding: "pcm",
     interim_results: "true",
     language: "en",
+    diarize: "true",
     smart_turn: "0.6",
     smart_turn_timeout: "2500",
     vad_threshold: "0.05",
@@ -280,6 +281,7 @@ wss.on("connection", (client) => {
         text: msg.text || "",
         isFinal: Boolean(msg.is_final),
         speechFinal: Boolean(msg.speech_final),
+        speaker: dominantSpeaker(msg.words),
         start: msg.start,
         duration: msg.duration,
       });
@@ -452,6 +454,26 @@ async function createTopicBrief(transcript) {
     model: XAI_MODEL,
     at: new Date().toISOString(),
   };
+}
+
+function dominantSpeaker(words) {
+  if (!Array.isArray(words) || !words.length) return null;
+  const counts = new Map();
+  for (const word of words) {
+    if (typeof word?.speaker === "number") {
+      counts.set(word.speaker, (counts.get(word.speaker) || 0) + 1);
+    }
+  }
+  if (!counts.size) return null;
+  let best = null;
+  let bestCount = -1;
+  for (const [speaker, count] of counts) {
+    if (count > bestCount) {
+      best = speaker;
+      bestCount = count;
+    }
+  }
+  return best;
 }
 
 function parseJsonLoose(content) {

@@ -29,18 +29,24 @@ export function useLiveCoach({ sampleRate = 16000 } = {}) {
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef(null);
   const stoppingRef = useRef(false);
+  // Speaker diarization: infer which diarized speaker is the interviewer.
+  const speakerCountsRef = useRef(new Map());
 
   useEffect(() => {
     utterancesRef.current = utterances;
   }, [utterances]);
 
+  const interviewerWindowText = useCallback(() => {
+    const items = utterancesRef.current.slice(-8);
+    const interviewer = items.filter((u) => u.role === "interviewer");
+    // Prefer interviewer utterances when diarization has identified them;
+    // otherwise fall back to the raw window so briefs never stall.
+    const source = interviewer.length ? interviewer : items.slice(-6);
+    return source.map((u) => u.text).join("\n");
+  }, []);
+
   const requestBrief = useCallback(async (forceText) => {
-    const windowText =
-      forceText ||
-      utterancesRef.current
-        .slice(-6)
-        .map((u) => u.text)
-        .join("\n");
+    const windowText = forceText || interviewerWindowText();
 
     const key = windowText.trim().slice(-280);
     if (key.length < 24 || key === lastBriefKeyRef.current) return;
@@ -184,14 +190,23 @@ export function useLiveCoach({ sampleRate = 16000 } = {}) {
         }
         setPartial("");
         if (msg.text?.trim()) {
+          const role = classifySpeaker(
+            msg.speaker,
+            speakerCountsRef.current,
+            msg.text.trim(),
+          );
           const item = {
             id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             text: msg.text.trim(),
             speechFinal: Boolean(msg.speechFinal),
+            speaker: msg.speaker ?? null,
+            role,
             at: new Date().toLocaleTimeString(),
           };
           setUtterances((prev) => [...prev, item].slice(-40));
-          queueBrief();
+          // Only auto-brief when the interviewer is talking (a likely question).
+          // Unknown roles still brief — better a spare card than silence.
+          if (role !== "you") queueBrief();
         }
       }
     };
@@ -228,6 +243,7 @@ export function useLiveCoach({ sampleRate = 16000 } = {}) {
     setUtterances([]);
     setPartial("");
     lastBriefKeyRef.current = "";
+    speakerCountsRef.current = new Map();
   }, []);
 
   const clearBriefs = useCallback(() => {
@@ -356,6 +372,37 @@ export function useLiveCoach({ sampleRate = 16000 } = {}) {
     runMicTest,
     setError,
   };
+}
+
+function classifySpeaker(speaker, counts, text) {
+  if (typeof speaker !== "number") return "unknown";
+  counts.set(speaker, (counts.get(speaker) || 0) + 1);
+
+  const looksLikeQuestion =
+    /\?\s*$/.test(text) ||
+    /^(tell me|walk me|describe|how (have|do|would)|what (experience|would)|why (optum|do you|are you)|have you)/i.test(
+      text.trim(),
+    );
+  if (looksLikeQuestion) {
+    counts.set(`q:${speaker}`, (counts.get(`q:${speaker}`) || 0) + 1);
+    return "interviewer";
+  }
+
+  // Once we have seen multiple speakers, the one with fewer utterances is
+  // most likely the interviewer (short questions vs. longer answers).
+  const numeric = [...counts.entries()].filter(([k]) => typeof k === "number");
+  if (numeric.length >= 2) {
+    let minSpeaker = null;
+    let minCount = Infinity;
+    for (const [s, c] of numeric) {
+      if (c < minCount) {
+        minSpeaker = s;
+        minCount = c;
+      }
+    }
+    return speaker === minSpeaker ? "interviewer" : "you";
+  }
+  return "unknown";
 }
 
 function encodeWav(pcm, sampleRate) {

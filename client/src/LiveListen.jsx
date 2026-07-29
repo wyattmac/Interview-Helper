@@ -132,8 +132,16 @@ export default function LiveListen({ coach }) {
               <p className="empty">Waiting for speech…</p>
             ) : null}
             {utterances.map((u) => (
-              <p key={u.id} className={u.speechFinal ? "final" : "chunk"}>
+              <p
+                key={u.id}
+                className={`${u.speechFinal ? "final" : "chunk"} speaker-${u.role || "unknown"}`}
+              >
                 <span className="time">{u.at}</span>
+                {u.role && u.role !== "unknown" ? (
+                  <span className={`who who-${u.role}`}>
+                    {u.role === "interviewer" ? "Them" : "You"}
+                  </span>
+                ) : null}
                 {u.text}
               </p>
             ))}
