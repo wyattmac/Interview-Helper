@@ -49,6 +49,25 @@ async function main() {
   const questionsSection = page.locator(".panel.wide", { hasText: "Likely questions" });
   check("likely questions render", (await questionsSection.locator(".q-item").count()) >= 6);
 
+  console.log("\n== Flashcards + quiz ==");
+  const flashPanel = page.locator(".panel", { hasText: "Technical flashcards" }).first();
+  check("flashcards render", (await flashPanel.locator(".flash-quiz").count()) >= 6);
+  await flashPanel.locator(".flash-face").first().click();
+  check("flashcard flips", (await flashPanel.locator(".flash-face p").first().innerText()).length > 30);
+  await flashPanel.locator(".flash-marks .know").first().click();
+  check("know mark tracked", (await flashPanel.locator(".flash-progress").innerText()).includes("1 know"));
+
+  // Quick quiz: start → answer → score → next
+  await page.locator("button", { hasText: "Start quick quiz" }).click();
+  await page.waitForSelector(".quiz-input", { timeout: 45000 });
+  check("quiz question generated", (await page.locator(".quiz-panel .mock-question").innerText()).length > 20);
+  await page.locator(".quiz-input").fill("I would lock it out, verify absence of voltage, check overloads and the contactor, then control power and interlocks like e-stops and sensors.");
+  await page.locator("button", { hasText: "Score it" }).click();
+  await page.waitForSelector(".quiz-result .score-chip", { timeout: 45000 });
+  const quizScore = await page.locator(".quiz-result .score-chip").first().innerText();
+  check("quiz answer scored", /\d\/5/.test(quizScore), quizScore);
+  check("quiz feedback shown", (await page.locator(".quiz-result p").first().innerText()).length > 10);
+
   console.log("\n== Mock interview ==");
   await page.locator(".tabs button", { hasText: "Mock interview" }).click();
   await page.waitForSelector(".mock-question");

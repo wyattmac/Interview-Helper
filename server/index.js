@@ -8,6 +8,8 @@ import cors from "cors";
 import { WebSocketServer, WebSocket } from "ws";
 import {
   buildGradingPrompt,
+  buildQuizGradePrompt,
+  buildQuizPrompt,
   buildSystemPrompt,
   getCandidateProfile,
   getJobPrep,
@@ -187,6 +189,57 @@ app.post("/api/grade", async (req, res) => {
     res.status(502).json({
       error: err instanceof Error ? err.message : "Grading failed",
     });
+  }
+});
+
+app.post("/api/quiz", async (req, res) => {
+  if (!XAI_API_KEY) {
+    res.status(503).json({ error: "Missing XAI_API_KEY" });
+    return;
+  }
+  const count = Math.min(6, Math.max(2, Number(req.body?.count) || 4));
+  try {
+    const quiz = await chatJson(buildQuizPrompt(), `Write ${count} quiz questions now.`, 600);
+    const questions = Array.isArray(quiz.questions)
+      ? quiz.questions
+          .filter((q) => q && typeof q.q === "string" && q.q.trim())
+          .slice(0, count)
+          .map((q) => ({ term: String(q.term || ""), q: q.q.trim() }))
+      : [];
+    if (!questions.length) throw new Error("Quiz came back empty");
+    res.json({ questions });
+  } catch (err) {
+    console.error("quiz error", err);
+    res.status(502).json({ error: err instanceof Error ? err.message : "Quiz failed" });
+  }
+});
+
+app.post("/api/quiz/grade", async (req, res) => {
+  if (!XAI_API_KEY) {
+    res.status(503).json({ error: "Missing XAI_API_KEY" });
+    return;
+  }
+  const { question = "", answer = "", term = "" } = req.body || {};
+  if (String(answer).trim().length < 5) {
+    res.status(400).json({ error: "Answer too short." });
+    return;
+  }
+  try {
+    const graded = await chatJson(
+      buildQuizGradePrompt(),
+      `Topic: ${term}\nQuestion: ${question}\nAnswer: ${answer}\n\nScore it.`,
+      300,
+    );
+    res.json({
+      score: Math.min(5, Math.max(1, Number(graded.score) || 3)),
+      feedback: String(graded.feedback || ""),
+      keyPoints: Array.isArray(graded.keyPoints)
+        ? graded.keyPoints.map(String).slice(0, 5)
+        : [],
+    });
+  } catch (err) {
+    console.error("quiz grade error", err);
+    res.status(502).json({ error: err instanceof Error ? err.message : "Grading failed" });
   }
 });
 
@@ -478,6 +531,39 @@ async function createTopicBrief(transcript) {
     model: XAI_MODEL,
     at: new Date().toISOString(),
   };
+}
+
+async function chatJson(systemPrompt, userPrompt, maxTokens = 500) {
+  const response = await fetch("https://api.x.ai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${XAI_API_KEY}`,
+      "Content-Type": "application/json",
+      "x-grok-conv-id": "interview-helper-optum-est",
+    },
+    body: JSON.stringify({
+      model: XAI_MODEL,
+      temperature: 0.3,
+      max_tokens: maxTokens,
+      reasoning_effort: REASONING_EFFORT,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`xAI chat error ${response.status}: ${body.slice(0, 300)}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("Empty model response");
+  return parseJsonLoose(content);
 }
 
 async function gradeAnswer(question, answer) {

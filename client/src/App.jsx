@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import BriefCard from "./BriefCard.jsx";
+import Flashcards from "./Flashcards.jsx";
+import QuickQuiz from "./QuickQuiz.jsx";
 import LiveListen from "./LiveListen.jsx";
 import { useLiveCoach } from "./useLiveCoach.js";
 
@@ -607,17 +609,9 @@ function PrepView({ prep, candidate }) {
           </div>
         </article>
 
-        <article className="panel">
-          <h3>Technical flashcards</h3>
-          <div className="cards-stack">
-            {technicalFlashcards.map((card) => (
-              <div key={card.term} className="flash">
-                <strong>{card.term}</strong>
-                <p>{card.talkTrack}</p>
-              </div>
-            ))}
-          </div>
-        </article>
+        <Flashcards cards={technicalFlashcards} />
+
+        <QuickQuiz cards={technicalFlashcards} />
 
         <article className="panel">
           <h3>Formulas & closer questions</h3>

@@ -647,6 +647,91 @@ blockquote {
   color: var(--teal);
 }
 
+.flash-progress {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.flash-quiz {
+  padding: 0;
+  overflow: hidden;
+}
+
+.flash-face {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 10px 12px;
+  color: inherit;
+}
+
+.flash-face p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.flash-marks {
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 10px;
+}
+
+.flash-marks .know {
+  border-color: rgba(62, 207, 154, 0.5);
+  color: var(--teal);
+}
+
+.flash-marks .unsure {
+  border-color: rgba(226, 165, 74, 0.5);
+  color: var(--amber);
+}
+
+.flash.marked-know {
+  border-left: 3px solid var(--teal);
+}
+
+.flash.marked-unsure {
+  border-left: 3px solid var(--amber);
+}
+
+.quiz-input {
+  width: 100%;
+  resize: vertical;
+  background: rgba(238, 243, 238, 0.05);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 10px 12px;
+  font: inherit;
+  line-height: 1.45;
+}
+
+.quiz-input:focus {
+  outline: none;
+  border-color: var(--amber);
+}
+
+.quiz-result {
+  margin-top: 10px;
+}
+
+.quiz-result strong {
+  display: inline;
+}
+
+.quiz-result .muted {
+  color: var(--muted);
+}
+
+.quiz-result p {
+  margin: 8px 0;
+}
+
+.quiz-result .score-chip {
+  margin-left: 8px;
+}
+
 .conf-low {
   color: var(--danger);
   border-color: rgba(239, 107, 92, 0.5);

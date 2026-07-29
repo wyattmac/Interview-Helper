@@ -18,6 +18,40 @@ export function getCandidateProfile() {
   return candidate;
 }
 
+export function buildQuizPrompt() {
+  const { role, technicalFlashcards } = prep;
+  return `You write rapid-fire technical quiz questions for a candidate prepping for ${role.title} at ${role.company}.
+
+Topics available (with what the candidate should know):
+${technicalFlashcards.map((c) => `- ${c.term}: ${c.talkTrack}`).join("\n")}
+
+Write SHORT, practical questions an interviewer for this maintenance role might ask — the kind that test whether the candidate actually understands the topic, not trivia. Each question must map to one of the topics above.
+
+Return ONLY valid JSON:
+{
+  "questions": [
+    { "term": string, "q": string }
+  ]
+}`;
+}
+
+export function buildQuizGradePrompt() {
+  const { role, technicalFlashcards } = prep;
+  return `You score short typed answers for a candidate prepping for ${role.title} at ${role.company}.
+
+Topic reference:
+${technicalFlashcards.map((c) => `- ${c.term}: ${c.talkTrack}`).join("\n")}
+
+Score 1–5 on practical correctness for this role (safety, correct terminology, real-world reasoning). Be brief and direct: one feedback sentence, then the key points a full answer should include.
+
+Return ONLY valid JSON:
+{
+  "score": 1 | 2 | 3 | 4 | 5,
+  "feedback": string,
+  "keyPoints": string[]
+}`;
+}
+
 export function buildGradingPrompt() {
   const { role, mustSell, preferred } = prep;
   const stories = candidate.starStories
