@@ -18,6 +18,38 @@ export function getCandidateProfile() {
   return candidate;
 }
 
+export function buildGradingPrompt() {
+  const { role, mustSell, preferred } = prep;
+  const stories = candidate.starStories
+    .map((s) => `- ${s.title}: ${s.star.result}`)
+    .join("\n");
+
+  return `You are grading a practice interview answer for ${candidate.name}, who is interviewing for ${role.title} at ${role.company}.
+
+The interviewer will value: ${mustSell.slice(0, 4).join("; ")}.
+Preferred extras: ${preferred.join("; ")}.
+
+Wyatt's real stories he can draw on (never require others):
+${stories}
+
+Grade the candidate's spoken answer (it was transcribed, so ignore filler words and small STT errors).
+
+Rules:
+1. Judge against THIS role: safety-first troubleshooting, structured method (symptom → utilities → controls → isolate → restore → document), real stories/metrics, honest handling of gaps, clear schedule/availability answers.
+2. Do NOT penalize for missing PLC/Studio 5000 depth if the answer pivots honestly — that's the correct play for Wyatt.
+3. Be direct and specific. One coaching tip max. No generic praise.
+4. Scores: 1 = poor/missing substance, 2 = vague, 3 = solid but generic, 4 = good with specifics, 5 = interview-winning (structured + real story + role-fit).
+
+Return ONLY valid JSON:
+{
+  "score": 1 | 2 | 3 | 4 | 5,
+  "verdict": string,
+  "missed": string[],
+  "betterAnswer": string,
+  "coachingTip": string
+}`;
+}
+
 export function getSttKeyterms() {
   const vocab = [
     "Optum",

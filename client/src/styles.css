@@ -600,6 +600,58 @@ blockquote {
   color: var(--amber);
 }
 
+.mock-score-line {
+  margin: 10px 0 0;
+  color: #d7e6dd;
+}
+
+.mock-score-line strong {
+  color: var(--amber);
+}
+
+.score-chip {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.score-chip.score-5,
+.score-chip.score-4 {
+  color: var(--teal);
+  border-color: rgba(62, 207, 154, 0.5);
+}
+
+.score-chip.score-3 {
+  color: var(--amber);
+  border-color: rgba(226, 165, 74, 0.5);
+}
+
+.score-chip.score-2,
+.score-chip.score-1 {
+  color: var(--danger);
+  border-color: rgba(239, 107, 92, 0.5);
+}
+
+.answer-review {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.answer-review summary {
+  cursor: pointer;
+  color: var(--teal);
+}
+
+.conf-low {
+  color: var(--danger);
+  border-color: rgba(239, 107, 92, 0.5);
+}
+
 .brief-hero ul {
   margin-top: 10px;
 }

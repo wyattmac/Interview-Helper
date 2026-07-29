@@ -7,6 +7,7 @@ import express from "express";
 import cors from "cors";
 import { WebSocketServer, WebSocket } from "ws";
 import {
+  buildGradingPrompt,
   buildSystemPrompt,
   getCandidateProfile,
   getJobPrep,
@@ -164,6 +165,29 @@ app.post("/api/stt-file", async (req, res) => {
       });
     }
   });
+});
+
+app.post("/api/grade", async (req, res) => {
+  if (!XAI_API_KEY) {
+    res.status(503).json({ error: "Missing XAI_API_KEY" });
+    return;
+  }
+
+  const { question = "", answer = "" } = req.body || {};
+  if (!String(answer).trim() || String(answer).trim().length < 10) {
+    res.status(400).json({ error: "Answer too short to grade." });
+    return;
+  }
+
+  try {
+    const grade = await gradeAnswer(String(question), String(answer));
+    res.json(grade);
+  } catch (err) {
+    console.error("grade error", err);
+    res.status(502).json({
+      error: err instanceof Error ? err.message : "Grading failed",
+    });
+  }
 });
 
 app.post("/api/brief", async (req, res) => {
@@ -452,6 +476,54 @@ async function createTopicBrief(transcript) {
       ? parsed.confidence
       : "medium",
     model: XAI_MODEL,
+    at: new Date().toISOString(),
+  };
+}
+
+async function gradeAnswer(question, answer) {
+  const response = await fetch("https://api.x.ai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${XAI_API_KEY}`,
+      "Content-Type": "application/json",
+      "x-grok-conv-id": "interview-helper-optum-est",
+    },
+    body: JSON.stringify({
+      model: XAI_MODEL,
+      temperature: 0.2,
+      max_tokens: 500,
+      reasoning_effort: REASONING_EFFORT,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: buildGradingPrompt() },
+        {
+          role: "user",
+          content: `Interviewer question:\n${question}\n\nCandidate's spoken answer (transcribed):\n${answer}\n\nGrade it now.`,
+        },
+      ],
+    }),
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`xAI grade error ${response.status}: ${body.slice(0, 300)}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("Empty grading response");
+
+  const parsed = parseJsonLoose(content);
+  const score = Math.min(5, Math.max(1, Number(parsed.score) || 3));
+  return {
+    score,
+    verdict: String(parsed.verdict || ""),
+    missed: Array.isArray(parsed.missed)
+      ? parsed.missed.map(String).slice(0, 4)
+      : [],
+    betterAnswer: String(parsed.betterAnswer || ""),
+    coachingTip: String(parsed.coachingTip || ""),
     at: new Date().toISOString(),
   };
 }

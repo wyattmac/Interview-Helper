@@ -83,8 +83,14 @@ function MockInterviewView() {
   const [error, setError] = useState("");
   const [coach, setCoach] = useState(null);
   const [coachLoading, setCoachLoading] = useState(false);
+  const [recordState, setRecordState] = useState("idle"); // idle|recording|transcribing|grading|done
+  const [answerTranscript, setAnswerTranscript] = useState("");
+  const [grade, setGrade] = useState(null);
+  const [scores, setScores] = useState([]); // { stepId, score }
   const audioRef = useRef(null);
   const coachAbortRef = useRef(null);
+  const recordCaptureRef = useRef(null);
+  const recordFramesRef = useRef([]);
 
   useEffect(() => {
     fetch("/api/mock-interview")
@@ -100,6 +106,7 @@ function MockInterviewView() {
         audioRef.current = null;
       }
       coachAbortRef.current?.abort();
+      recordCaptureRef.current?.stop().catch(() => {});
     };
   }, []);
 
@@ -179,6 +186,89 @@ function MockInterviewView() {
     }
   }
 
+  async function startRecording() {
+    setError("");
+    setGrade(null);
+    setAnswerTranscript("");
+    recordFramesRef.current = [];
+    try {
+      const { startPcmCapture } = await import("./audio.js");
+      recordCaptureRef.current = await startPcmCapture({
+        sampleRate: SAMPLE_RATE,
+        onFrame: (buffer) => recordFramesRef.current.push(new Int16Array(buffer)),
+        onError: (err) => setError(err.message),
+      });
+      setRecordState("recording");
+    } catch (err) {
+      setError(err.message || "Microphone access denied.");
+    }
+  }
+
+  async function stopRecordingAndGrade() {
+    setRecordState("transcribing");
+    const capture = recordCaptureRef.current;
+    recordCaptureRef.current = null;
+    if (capture) await capture.stop();
+
+    const frames = recordFramesRef.current;
+    const total = frames.reduce((n, f) => n + f.length, 0);
+    const pcm = new Int16Array(total);
+    let offset = 0;
+    for (const frame of frames) {
+      pcm.set(frame, offset);
+      offset += frame.length;
+    }
+    recordFramesRef.current = [];
+
+    if (pcm.length < SAMPLE_RATE * 1.5) {
+      setRecordState("idle");
+      setError("Answer too short — hold Record, answer for at least a few seconds, then Grade my answer.");
+      return;
+    }
+
+    try {
+      const wav = encodeWavForUpload(pcm, SAMPLE_RATE);
+      const form = new FormData();
+      form.append("format", "true");
+      form.append("language", "en");
+      form.append("file", new Blob([wav], { type: "audio/wav" }), "answer.wav");
+      const sttRes = await fetch("/api/stt-file", { method: "POST", body: form });
+      const stt = await sttRes.json();
+      if (!sttRes.ok) throw new Error(stt.error || "Transcription failed");
+      const text = (stt.text || "").trim();
+      setAnswerTranscript(text);
+
+      if (text.split(/\s+/).filter(Boolean).length < 4) {
+        setRecordState("idle");
+        setError("Couldn't make out an answer — check mic/speaker setup and try again.");
+        return;
+      }
+
+      setRecordState("grading");
+      const gradeRes = await fetch("/api/grade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: step.text, answer: text }),
+      });
+      const gradeData = await gradeRes.json();
+      if (!gradeRes.ok) throw new Error(gradeData.error || "Grading failed");
+      setGrade(gradeData);
+      setScores((prev) => {
+        const next = prev.filter((s) => s.stepId !== step.id);
+        next.push({ stepId: step.id, score: gradeData.score });
+        return next;
+      });
+      setRecordState("done");
+    } catch (err) {
+      setRecordState("idle");
+      setError(err.message || "Could not grade answer");
+    }
+  }
+
+  const average = scores.length
+    ? (scores.reduce((n, s) => n + s.score, 0) / scores.length).toFixed(1)
+    : null;
+
   return (
     <section className="mock">
       <div className="control-bar">
@@ -186,22 +276,41 @@ function MockInterviewView() {
           <p className="label">{script.title}</p>
           <p className="hint">
             Grok voice interviewer (<strong>{script.voiceId}</strong> /{" "}
-            {script.interviewerName}). {script.instructions}
+            {script.interviewerName}). Answer out loud, then get graded.
           </p>
         </div>
         <div className="actions">
           <button
             className="primary"
-            disabled={playing}
+            disabled={playing || recordState === "recording"}
             onClick={() => playStep(index)}
           >
             {playing ? "Speaking…" : "Ask this question"}
           </button>
+          {recordState !== "recording" ? (
+            <button
+              className="ghost"
+              disabled={playing || recordState === "transcribing" || recordState === "grading"}
+              onClick={startRecording}
+            >
+              {recordState === "transcribing"
+                ? "Transcribing…"
+                : recordState === "grading"
+                  ? "Grading…"
+                  : "Record my answer"}
+            </button>
+          ) : (
+            <button className="danger" onClick={stopRecordingAndGrade}>
+              Grade my answer
+            </button>
+          )}
           <button
             className="ghost"
-            disabled={playing || index === 0}
+            disabled={playing || index === 0 || recordState === "recording"}
             onClick={() => {
               setCoach(null);
+              setGrade(null);
+              setAnswerTranscript("");
               setIndex((i) => Math.max(0, i - 1));
             }}
           >
@@ -209,9 +318,11 @@ function MockInterviewView() {
           </button>
           <button
             className="ghost"
-            disabled={playing || atEnd}
+            disabled={playing || atEnd || recordState === "recording"}
             onClick={() => {
               setCoach(null);
+              setGrade(null);
+              setAnswerTranscript("");
               setIndex((i) => Math.min(script.steps.length - 1, i + 1));
             }}
           >
@@ -220,6 +331,12 @@ function MockInterviewView() {
         </div>
       </div>
 
+      {average ? (
+        <p className="mock-score-line">
+          Practice average: <strong>{average} / 5</strong> across{" "}
+          {scores.length} graded answer{scores.length === 1 ? "" : "s"}
+        </p>
+      ) : null}
       {error ? <p className="error">{error}</p> : null}
 
       <div className="live-grid">
@@ -228,46 +345,120 @@ function MockInterviewView() {
             <h2>
               Question {index + 1} / {script.steps.length}
             </h2>
-            <span className="pulse">{playing ? "Grok speaking" : "Ready"}</span>
+            <span className="pulse">
+              {playing
+                ? "Grok speaking"
+                : recordState === "recording"
+                  ? "Recording your answer…"
+                  : "Ready"}
+            </span>
           </div>
           <p className="mock-question">“{step.text}”</p>
           <ol className="mock-steps">
-            {script.steps.map((s, i) => (
-              <li key={s.id}>
-                <button
-                  className={`q-item ${i === index ? "open" : ""}`}
-                  disabled={playing}
-                  onClick={() => {
-                    setCoach(null);
-                    setIndex(i);
-                  }}
-                >
-                  <strong>
-                    {i + 1}. {s.id}
-                  </strong>
-                  <span>{s.text}</span>
-                </button>
-              </li>
-            ))}
+            {script.steps.map((s, i) => {
+              const graded = scores.find((x) => x.stepId === s.id);
+              return (
+                <li key={s.id}>
+                  <button
+                    className={`q-item ${i === index ? "open" : ""}`}
+                    disabled={playing || recordState === "recording"}
+                    onClick={() => {
+                      setCoach(null);
+                      setGrade(null);
+                      setAnswerTranscript("");
+                      setIndex(i);
+                    }}
+                  >
+                    <strong>
+                      {i + 1}. {s.id}
+                      {graded ? (
+                        <span className={`score-chip score-${graded.score}`}>
+                          {graded.score}/5
+                        </span>
+                      ) : null}
+                    </strong>
+                    <span>{s.text}</span>
+                  </button>
+                </li>
+              );
+            })}
           </ol>
         </div>
 
         <div className="panel">
           <div className="panel-head">
-            <h2>Coach for this question</h2>
+            <h2>{grade ? "Your grade" : "Coach for this question"}</h2>
             {coachLoading ? <span className="pulse">Briefing…</span> : null}
           </div>
-          {!coach && !coachLoading ? (
+          {!coach && !coachLoading && !grade ? (
             <p className="empty">
-              Hit <strong>Ask this question</strong> to hear Grok voice and get
-              a live brief (SKED, Navy supervisor stories, honest PLC pivot).
+              Hit <strong>Ask this question</strong>, then{" "}
+              <strong>Record my answer</strong> and <strong>Grade my answer</strong>{" "}
+              to see how it lands.
             </p>
           ) : null}
-          <BriefCard brief={coach} hero />
+          {grade ? (
+            <article className="brief brief-hero">
+              <div className="brief-top">
+                <h3>Score: {grade.score} / 5</h3>
+                <span className={`conf conf-${grade.score >= 4 ? "high" : grade.score === 3 ? "medium" : "low"}`}>
+                  {grade.score >= 4 ? "strong" : grade.score === 3 ? "ok" : "work on it"}
+                </span>
+              </div>
+              <p className="why">{grade.verdict}</p>
+              {grade.missed?.length ? (
+                <>
+                  <p className="story-cue">What you missed:</p>
+                  <ul>
+                    {grade.missed.map((m) => (
+                      <li key={m}>{m}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+              {grade.betterAnswer ? (
+                <blockquote className="say-this">Try: “{grade.betterAnswer}”</blockquote>
+              ) : null}
+              {grade.coachingTip ? (
+                <p className="watch">Tip: {grade.coachingTip}</p>
+              ) : null}
+              {answerTranscript ? (
+                <details className="answer-review">
+                  <summary>What Grok heard you say</summary>
+                  <p>{answerTranscript}</p>
+                </details>
+              ) : null}
+            </article>
+          ) : (
+            <BriefCard brief={coach} hero />
+          )}
         </div>
       </div>
     </section>
   );
+}
+
+function encodeWavForUpload(pcm, sampleRate) {
+  const buffer = new ArrayBuffer(44 + pcm.length * 2);
+  const view = new DataView(buffer);
+  const writeString = (offset, s) => {
+    for (let i = 0; i < s.length; i += 1) view.setUint8(offset + i, s.charCodeAt(i));
+  };
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + pcm.length * 2, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, "data");
+  view.setUint32(40, pcm.length * 2, true);
+  new Uint8Array(buffer, 44).set(new Uint8Array(pcm.buffer));
+  return buffer;
 }
 
 function PrepView({ prep, candidate }) {

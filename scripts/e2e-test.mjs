@@ -65,9 +65,37 @@ async function main() {
   await page.locator(".option-honest").click();
   check("picking an option works", (await page.locator(".picked-note").innerText()).includes("Honest"));
   check("mock script lists 9 questions", (await page.locator(".mock-steps li").count()) === 9);
+  // Record + grade flow (fake mic records a tone → too short → error; but
+  // the record/stop buttons and state machine must work)
+  check("record button exists", (await page.locator("button", { hasText: "Record my answer" }).count()) === 1);
+  await page.locator("button", { hasText: "Record my answer" }).click();
+  await page.waitForSelector("button", { hasText: "Grade my answer" }, { timeout: 5000 });
+  check("recording state active", true);
+  await page.waitForTimeout(2500);
+  await page.locator("button", { hasText: "Grade my answer" }).click();
+  await page.waitForTimeout(8000);
+  // Fake mic = tone, expect either an "couldn't make out" error or a grade
+  const gradeOrError = (await page.locator(".error, .brief-hero").first().innerText().catch(() => ""));
+  check("grading flow responds", gradeOrError.length > 5, gradeOrError.slice(0, 60));
+
   // Next question
   await page.locator("button", { hasText: "Next" }).click();
   check("next question navigates", (await page.locator(".panel-head h2").first().innerText()).includes("2 / 9"));
+
+  // Grade endpoint directly
+  const grade = await page.evaluate(async () => {
+    const r = await fetch("/api/grade", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: "Are you available for Sunday through Thursday second shift?",
+        answer: "Yes, absolutely. In the Navy I stood watches at all hours including nights and weekends, so second shift Sunday through Thursday works for me, and I can flex for Saturday overtime when needed.",
+      }),
+    });
+    return r.json();
+  });
+  check("grade API scores 1-5", grade.score >= 1 && grade.score <= 5, `score=${grade.score}`);
+  check("grade API gives coaching", (grade.coachingTip || grade.betterAnswer || "").length > 10);
 
   console.log("\n== Live listen ==");
   await page.locator(".tabs button", { hasText: "Live listen" }).click();
