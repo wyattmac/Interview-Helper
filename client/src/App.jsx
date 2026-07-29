@@ -353,9 +353,9 @@ function PrepView({ prep, candidate }) {
         <p className="pay">{role.pay} · travel {role.travel}</p>
         {candidate ? (
           <p className="candidate-line">
-            Coaching for <strong>{candidate.name}</strong> — lead with Navy ET +
-            BAE electronics, bridge inventory/docs to CMMS, be honest on AB/Studio
-            5000 depth.
+            Coaching for <strong>{candidate.name}</strong> — lead with Navy
+            Communications Electronics Supervisor + SKED CMMS + BAE electronics;
+            be honest on AB/Studio 5000 depth.
           </p>
         ) : null}
       </div>

@@ -49,8 +49,8 @@ If the default model isn’t available on your account, set `XAI_MODEL` to anoth
 
 The coach is loaded with your resume history (`data/candidate-profile.json`):
 
-- **Lead stories:** Navy ET3 on USS James E. Williams (97% availability, CASREPs, $1.5M parts), BAE electronics tech with controlled procedures
-- **Bridge:** inventory/docs → CMMS/SAP; watchstanding → 2nd-shift radio calls
+- **Lead stories:** Navy Communications Electronics Supervisor on USS James E. Williams (SKED CMMS, 97% availability, CASREPs, $1.5M parts), BAE electronics tech with controlled procedures
+- **Bridge:** SKED → their CMMS/SAP; watchstanding → 2nd-shift radio calls
 - **Stay honest:** don’t invent Studio 5000 / pharmacy OEM hours; pivot to learning speed + real diagnostics
 
 Prep tab shows your STAR stories and “Your version” answers for likely questions.

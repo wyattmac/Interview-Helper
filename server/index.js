@@ -32,6 +32,7 @@ const KEYTERMS = [
   "PLC",
   "HMI",
   "CMMS",
+  "SKED",
   "SAP",
   "pneumatic",
   "480 volt",

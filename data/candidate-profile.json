@@ -3,7 +3,7 @@
   "location": "Rowland, NC",
   "phone": "(910) 736-5696",
   "email": "locklearwyatt@gmail.com",
-  "headline": "Navy Electronics Technician veteran → BAE electronics tech → field ops leader, targeting Optum Equipment Services Technician",
+  "headline": "Navy Communications Electronics Supervisor & Electronics Technician veteran → BAE electronics tech → field ops leader, targeting Optum Equipment Services Technician",
   "education": [
     "WGU — B.S. Business Management (expected Nov 2026)",
     "FTCC — A.A.S. Civil Engineering Technology; A.A.S. Geomatics Technology (2023)",
@@ -46,12 +46,13 @@
     },
     {
       "org": "United States Navy — USS James E. Williams (DDG 95)",
-      "title": "Electronics Technician Third Class (E-4) / Work Center Supervisor",
+      "title": "Electronics Technician Third Class (E-4) / Communications Electronics Supervisor",
       "dates": "Jun 2013 – May 2019",
       "relevance": "primary",
       "bullets": [
-        "Full-scope preventive and corrective maintenance on shipboard communications / electronics for ~350-person AEGIS destroyer",
-        "156 repairs, 40 spot checks, 1000+ equipment validations; held ~97% equipment availability on Middle East / Asia deployment",
+        "Communications Electronics Supervisor for shipboard communications / electronics on an AEGIS destroyer (~350 personnel)",
+        "Used SKED as the CMMS for scheduled maintenance, work packages, spot checks, and maintenance documentation",
+        "Full-scope preventive and corrective maintenance; 156 repairs, 40 spot checks, 1000+ equipment validations; ~97% equipment availability on Middle East / Asia deployment",
         "TVS / Digital Modular Radio / Digital Voice Recorder SME; corrected Category II/III casualty reports",
         "Stood Electrical Systems (ESS) Supervisor watch underway",
         "Managed repair parts inventory/requisitions for two divisions (>$1.5M); saved ~$126K by streamlining inventory",
@@ -62,6 +63,8 @@
   ],
   "technicalStrengths": [
     "Complex diagnostics, fault isolation, and test equipment on electronic systems",
+    "Communications Electronics Supervisor — ownership of uptime, priorities, and technician direction",
+    "SKED CMMS: scheduled maintenance, work packages, spot checks, closeout documentation",
     "Preventive + corrective maintenance under readiness pressure",
     "Parts / inventory / requisition control and work-priority management",
     "Safety, OSH, risk assessment, quality assurance, controlled procedures",
@@ -75,13 +78,14 @@
     "Do not claim packaging/pharmacy automation OEMs or pill-dispenser brands unless true",
     "Do not invent Allen-Bradley / Studio 5000 depth — say PLC exposure + fast learner + ask about their stack",
     "Industrial 3-phase 480V plant experience may be thinner than pure factory techs — bridge via shipboard electrical systems, ESS supervisor watch, LOTO/safety mindset, and motor/servo/cooling work",
-    "CMMS/SAP: map Navy repair-parts program + BAE maintenance/parts/quality records; ask which CMMS they use",
+    "CMMS/SAP: lead with Navy SKED experience; map to their CMMS/SAP and ask which system Charlotte uses — do not pretend you already run SAP daily",
     "Secret clearance listed as expiring 2023 — do not present as current unless renewed"
   ],
   "bridgeLines": [
-    "I spent six years as a Navy Electronics Technician keeping mission-critical communications and electronics up on a destroyer — same urgency as keeping a pharmacy line running: diagnose fast, restore safely, document everything.",
-    "At BAE I followed controlled procedures on electronics repair with strict parts and quality records — that maps directly to CMMS work-order discipline.",
-    "I'm comfortable on nights/watches and radio-style priority calls; shipboard ESS supervisor watch and work-center ownership prepared me for 2nd-shift service response.",
+    "I spent six years as a Navy Communications Electronics Supervisor keeping mission-critical communications and electronics up on a destroyer — same urgency as keeping a pharmacy line running: diagnose fast, restore safely, document everything.",
+    "In the Navy I lived in SKED as our CMMS — scheduling maintenance, working packages, spot checks, and closing out work. That is the same work-order discipline Optum wants in CMMS or SAP.",
+    "At BAE I followed controlled procedures on electronics repair with strict parts and quality records — that reinforces the CMMS habit from SKED.",
+    "I'm comfortable on nights/watches and radio-style priority calls; Communications Electronics Supervisor ownership and ESS supervisor watch prepared me for 2nd-shift service response.",
     "I may not have lived on a pill-packaging OEM every day, but I know how to learn a platform fast, isolate electrical/electronic/mechanical faults, and keep availability high."
   ],
   "starStories": [
@@ -91,8 +95,8 @@
       "useFor": ["troubleshooting", "uptime", "pressure", "maintenance"],
       "star": {
         "situation": "USS James E. Williams deployment to Middle East/Asia — communications readiness was non-negotiable.",
-        "task": "Keep exterior/interior communications gear available while standing watch and owning corrective maintenance.",
-        "action": "Ran preventive checks, fault-isolated TVS/DMR/recorder issues, completed 156 repairs and 1000 validations, escalated CASREPs when needed, trained techs so coverage didn't depend on one person.",
+        "task": "As Communications Electronics Supervisor, keep exterior/interior communications gear available while standing watch and owning corrective maintenance.",
+        "action": "Drove SKED scheduled maintenance, fault-isolated TVS/DMR/recorder issues, completed 156 repairs and 1000 validations, escalated CASREPs when needed, trained techs so coverage didn't depend on one person.",
         "result": "Held about 97% equipment availability through the deployment."
       }
     },
@@ -108,14 +112,25 @@
       }
     },
     {
+      "id": "sked",
+      "title": "SKED CMMS as Communications Electronics Supervisor",
+      "useFor": ["CMMS", "SAP", "work orders", "documentation", "scheduled maintenance"],
+      "star": {
+        "situation": "As Communications Electronics Supervisor on USS James E. Williams, maintenance had to be planned, executed, and documented for combat-systems readiness.",
+        "task": "Use SKED (Navy CMMS) to drive scheduled maintenance, spot checks, and corrective work closeout for communications electronics.",
+        "action": "Opened and worked maintenance in SKED, tracked due/overdue actions, recorded completions, and kept the work center audit-ready while still answering casualties.",
+        "result": "Supported ~97% equipment availability with documented preventive and corrective maintenance — directly transferable to Optum CMMS/SAP work orders."
+      }
+    },
+    {
       "id": "parts",
       "title": "Repair parts program / $1.5M inventory",
       "useFor": ["CMMS", "SAP", "parts inventory", "documentation"],
       "star": {
-        "situation": "Two electronics divisions needed accurate repair parts, tools, and material support.",
+        "situation": "Two electronics divisions needed accurate repair parts, tools, and material support alongside SKED maintenance execution.",
         "task": "Administer inventory, distribution, and replenishment as Repair Parts Program Administrator.",
         "action": "Processed hundreds of requisitions, tracked usage, and streamlined stock so money wasn't tied up in dead inventory.",
-        "result": "Managed requisitions valued over $1.5M and saved roughly $126K through inventory streamlining — same discipline Optum wants in CMMS/SAP."
+        "result": "Managed requisitions valued over $1.5M and saved roughly $126K through inventory streamlining — pairs with SKED for full CMMS + parts story."
       }
     },
     {
@@ -163,7 +178,11 @@
     },
     {
       "q": "How do you use CMMS or SAP day to day?",
-      "yourAnswer": "I haven't lived in SAP every day, but I have run the equivalent discipline: Navy repair-parts program administrator for two divisions — requisitions over $1.5M, inventory accuracy, and cutting about $126K in excess stock — plus BAE maintenance/parts/quality records under controlled procedures. I treat the work order as the source of truth: problem, cause, parts, time, follow-up. I'll learn their CMMS fast because the habit is already there."
+      "yourAnswer": "In the Navy I used SKED as our CMMS every day as a Communications Electronics Supervisor — scheduling preventive maintenance, working packages, doing spot checks, and closing out corrective jobs so the record matched reality. I also ran repair-parts support for two divisions — requisitions over $1.5M and about $126K saved by cleaning up inventory — plus BAE maintenance/parts/quality records. I haven't lived in SAP daily, but SKED gave me real CMMS habits: the work order is the source of truth for problem, cause, parts, time, and follow-up. I'll map that straight onto whatever CMMS or SAP Charlotte uses."
+    },
+    {
+      "q": "Tell me about your leadership / supervisor experience.",
+      "yourAnswer": "I was a Communications Electronics Supervisor in the Navy — owning work-center priorities, training technicians, and keeping communications electronics available for the ship. That meant assigning work, checking quality, using SKED to stay ahead of maintenance, and answering high-priority casualties without losing the schedule. Later as a survey Crew Chief I led field crews the same way: clear assignments, safety, and communication when something blocked the job."
     },
     {
       "q": "Have you worked with Allen-Bradley / Studio 5000?",
