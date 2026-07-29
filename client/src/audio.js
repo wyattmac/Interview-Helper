@@ -65,6 +65,8 @@ export async function startPcmCapture({
       stream.getTracks().forEach((t) => t.stop());
       if (audioContext.state !== "closed") await audioContext.close();
     },
+    audioContext,
+    source,
   };
 }
 

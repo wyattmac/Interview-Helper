@@ -17,6 +17,7 @@ export function useLiveCoach({ sampleRate = 16000 } = {}) {
   const [utterances, setUtterances] = useState([]);
   const [briefs, setBriefs] = useState([]);
   const [briefLoading, setBriefLoading] = useState(false);
+  const [micTest, setMicTest] = useState(null); // { phase, transcript, quality }
 
   const captureRef = useRef(null);
   const socketRef = useRef(null);
@@ -234,6 +235,101 @@ export function useLiveCoach({ sampleRate = 16000 } = {}) {
     lastBriefKeyRef.current = "";
   }, []);
 
+  const runMicTest = useCallback(async () => {
+    if (listening) {
+      setError("Stop listening before running the mic test.");
+      return;
+    }
+    setError("");
+    setMicTest({ phase: "recording", transcript: "", quality: "" });
+
+    let capture;
+    const frames = [];
+    const DURATION_MS = 6000;
+    try {
+      capture = await startPcmCapture({
+        sampleRate,
+        onFrame: (buffer) => frames.push(new Int16Array(buffer)),
+        onError: (err) => setError(err.message),
+      });
+
+      // Feed the mic back through the speakers at low volume so the user can
+      // hear whether phone audio is reaching the laptop (and hear echo test).
+      const monitor = capture.audioContext.createGain();
+      monitor.gain.value = 0.25;
+      capture.source.connect(monitor);
+      monitor.connect(capture.audioContext.destination);
+      capture.monitor = monitor;
+    } catch (err) {
+      setMicTest(null);
+      setError(
+        err.message || "Microphone access denied. Allow mic access and retry.",
+      );
+      return;
+    }
+
+    await new Promise((r) => setTimeout(r, DURATION_MS));
+    try {
+      capture.monitor?.disconnect();
+    } catch {
+      /* ignore */
+    }
+    await capture.stop();
+
+    const total = frames.reduce((n, f) => n + f.length, 0);
+    const pcm = new Int16Array(total);
+    let offset = 0;
+    for (const frame of frames) {
+      pcm.set(frame, offset);
+      offset += frame.length;
+    }
+
+    // Measure RMS to give a loudness hint.
+    let sum = 0;
+    let peak = 0;
+    for (let i = 0; i < pcm.length; i += 1) {
+      const v = Math.abs(pcm[i]);
+      sum += pcm[i] * pcm[i];
+      if (v > peak) peak = v;
+    }
+    const rms = Math.sqrt(sum / Math.max(1, pcm.length)) / 32768;
+
+    // WAV container for the REST STT endpoint.
+    const wav = encodeWav(pcm, sampleRate);
+    setMicTest({ phase: "transcribing", transcript: "", quality: "" });
+
+    try {
+      const form = new FormData();
+      form.append("format", "true");
+      form.append("language", "en");
+      form.append("file", new Blob([wav], { type: "audio/wav" }), "mic-test.wav");
+      const res = await fetch("/api/stt-file", { method: "POST", body: form });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Transcription failed");
+
+      const text = (data.text || "").trim();
+      let quality;
+      if (!text) {
+        quality =
+          "Nothing heard — bring the phone speaker closer to the laptop mic and raise call volume.";
+      } else if (rms < 0.01) {
+        quality = `Very quiet (level ${(rms * 100).toFixed(1)}%) — move the phone closer or louder.`;
+      } else if (text.split(/\s+/).length < 4) {
+        quality = "Heard a little — okay, but closer/louder phone audio will be more accurate.";
+      } else {
+        quality = `Audio looks good (level ${(rms * 100).toFixed(1)}%). You're ready.`;
+      }
+      setMicTest({
+        phase: "done",
+        transcript: text || "(no speech detected)",
+        quality,
+      });
+    } catch (err) {
+      setMicTest(null);
+      setError(err.message || "Mic test transcription failed");
+    }
+  }, [listening, sampleRate, setError]);
+
   useEffect(() => {
     return () => {
       stoppingRef.current = true;
@@ -250,12 +346,38 @@ export function useLiveCoach({ sampleRate = 16000 } = {}) {
     utterances,
     briefs,
     briefLoading,
+    micTest,
     startListening,
     stopListening,
     requestBrief,
     queueBrief,
     clearTranscript,
     clearBriefs,
+    runMicTest,
     setError,
   };
+}
+
+function encodeWav(pcm, sampleRate) {
+  const buffer = new ArrayBuffer(44 + pcm.length * 2);
+  const view = new DataView(buffer);
+  const writeString = (offset, s) => {
+    for (let i = 0; i < s.length; i += 1) view.setUint8(offset + i, s.charCodeAt(i));
+  };
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + pcm.length * 2, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, "data");
+  view.setUint32(40, pcm.length * 2, true);
+  const bytes = new Uint8Array(buffer, 44);
+  bytes.set(new Uint8Array(pcm.buffer));
+  return buffer;
 }

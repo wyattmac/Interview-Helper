@@ -113,6 +113,59 @@ app.post("/api/mock-interview/speak", async (req, res) => {
   }
 });
 
+app.post("/api/stt-file", async (req, res) => {
+  if (!XAI_API_KEY) {
+    res.status(503).json({ error: "Missing XAI_API_KEY" });
+    return;
+  }
+
+  const chunks = [];
+  let size = 0;
+  req.on("data", (chunk) => {
+    size += chunk.length;
+    if (size <= 20 * 1024 * 1024) chunks.push(chunk);
+  });
+
+  req.on("end", async () => {
+    const audio = Buffer.concat(chunks);
+    if (!audio.length) {
+      res.status(400).json({ error: "No audio received." });
+      return;
+    }
+
+    try {
+      const form = new FormData();
+      form.append("format", "true");
+      form.append("language", "en");
+      form.append(
+        "file",
+        new Blob([audio], { type: "audio/wav" }),
+        "mic-test.wav",
+      );
+
+      const sttRes = await fetch("https://api.x.ai/v1/stt", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${XAI_API_KEY}` },
+        body: form,
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
+
+      if (!sttRes.ok) {
+        const body = await sttRes.text();
+        throw new Error(`STT error ${sttRes.status}: ${body.slice(0, 300)}`);
+      }
+
+      const data = await sttRes.json();
+      res.json({ text: data.text || "", duration: data.duration });
+    } catch (err) {
+      console.error("stt-file error", err);
+      res.status(502).json({
+        error: err instanceof Error ? err.message : "Transcription failed",
+      });
+    }
+  });
+});
+
 app.post("/api/brief", async (req, res) => {
   if (!XAI_API_KEY) {
     res.status(503).json({

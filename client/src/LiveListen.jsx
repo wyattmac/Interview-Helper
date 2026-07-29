@@ -20,11 +20,13 @@ export default function LiveListen({ coach }) {
     utterances,
     briefs,
     briefLoading,
+    micTest,
     startListening,
     stopListening,
     requestBrief,
     clearTranscript,
     clearBriefs,
+    runMicTest,
   } = coach;
 
   const hero = briefs[0];
@@ -65,8 +67,41 @@ export default function LiveListen({ coach }) {
           >
             {briefLoading ? "Briefing…" : "Brief now"}
           </button>
+          <button
+            className="ghost"
+            disabled={listening || micTest?.phase === "recording" || micTest?.phase === "transcribing"}
+            onClick={runMicTest}
+          >
+            {micTest?.phase === "recording"
+              ? "Recording 6s…"
+              : micTest?.phase === "transcribing"
+                ? "Checking…"
+                : "Test my phone audio"}
+          </button>
         </div>
       </div>
+
+      {micTest ? (
+        <div className="mic-test">
+          {micTest.phase === "recording" ? (
+            <p>
+              Play a call recording or have someone talk through your phone on
+              speaker now — recording 6 seconds…
+            </p>
+          ) : null}
+          {micTest.phase === "transcribing" ? (
+            <p>Checking what Grok heard…</p>
+          ) : null}
+          {micTest.phase === "done" ? (
+            <>
+              <p className="mic-test-heard">
+                Grok heard: “{micTest.transcript}”
+              </p>
+              <p className="mic-test-quality">{micTest.quality}</p>
+            </>
+          ) : null}
+        </div>
+      ) : null}
 
       <p className={`status status-${status}`}>
         {STATUS_LABELS[status] || status}
