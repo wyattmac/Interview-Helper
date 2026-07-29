@@ -1,0 +1,53 @@
+{
+  "title": "Optum Equipment Services Technician — mock phone screen",
+  "voiceId": "rex",
+  "interviewerName": "Jordan",
+  "instructions": "Put headphones on if you want, or play on speakers and keep Live listen running so the helper briefs each question.",
+  "steps": [
+    {
+      "id": "intro",
+      "role": "interviewer",
+      "text": "Hi Wyatt, thanks for taking the time today. I'm Jordan from Optum recruiting for the Equipment Services Technician role in Charlotte. This will be a short technical and experience screen. Ready to get started?"
+    },
+    {
+      "id": "schedule",
+      "role": "interviewer",
+      "text": "First, this role is onsite Sunday through Thursday, second shift from two p.m. to eleven thirty p.m., with occasional Saturday overtime. Are you available for that schedule?"
+    },
+    {
+      "id": "troubleshoot",
+      "role": "interviewer",
+      "text": "Walk me through how you troubleshoot a machine that suddenly stops on an automated production line. What do you check first?"
+    },
+    {
+      "id": "electrical",
+      "role": "interviewer",
+      "text": "Tell me about a time you diagnosed a complex electrical or electronics issue under time pressure. What was the fault, and how did you isolate it?"
+    },
+    {
+      "id": "cmms",
+      "role": "interviewer",
+      "text": "How have you used SKED or another C-M-M-S day to day for work orders, parts, and maintenance history?"
+    },
+    {
+      "id": "plc",
+      "role": "interviewer",
+      "text": "What experience do you have with PLCs or HMIs, such as Allen-Bradley, Rockwell Studio 5000, or Beckhoff?"
+    },
+    {
+      "id": "prioritize",
+      "role": "interviewer",
+      "text": "If two machines are down and production is waiting, how do you prioritize, and how do you communicate status over the radio?"
+    },
+    {
+      "id": "why",
+      "role": "interviewer",
+      "text": "Why are you interested in Optum and mail-order pharmacy automation equipment specifically?"
+    },
+    {
+      "id": "close",
+      "role": "interviewer",
+      "text": "Great. Before we wrap, what questions do you have for me about the Charlotte team or the equipment you'd support?"
+    }
+  ]
+}

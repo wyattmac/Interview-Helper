@@ -4,7 +4,7 @@ import { startPcmCapture, wsUrl } from "./audio.js";
 const SAMPLE_RATE = 16000;
 
 export default function App() {
-  const [tab, setTab] = useState("live");
+  const [tab, setTab] = useState("mock");
   const [health, setHealth] = useState(null);
   const [prep, setPrep] = useState(null);
   const [candidate, setCandidate] = useState(null);
@@ -205,6 +205,12 @@ export default function App() {
 
       <nav className="tabs" aria-label="Modes">
         <button
+          className={tab === "mock" ? "active" : ""}
+          onClick={() => setTab("mock")}
+        >
+          Mock interview
+        </button>
+        <button
           className={tab === "live" ? "active" : ""}
           onClick={() => setTab("live")}
         >
@@ -217,6 +223,16 @@ export default function App() {
           Interview prep
         </button>
       </nav>
+
+      {tab === "mock" ? (
+        <MockInterviewView
+          onBrief={(brief) =>
+            startTransition(() => {
+              setBriefs((prev) => [brief, ...prev].slice(0, 12));
+            })
+          }
+        />
+      ) : null}
 
       {tab === "live" ? (
         <section className="live">
@@ -325,10 +341,255 @@ export default function App() {
             </div>
           </div>
         </section>
-      ) : (
+      ) : null}
+
+      {tab === "prep" ? (
         <PrepView prep={prep} candidate={candidate} />
-      )}
+      ) : null}
     </div>
+  );
+}
+
+function MockInterviewView({ onBrief }) {
+  const [script, setScript] = useState(null);
+  const [index, setIndex] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [error, setError] = useState("");
+  const [coach, setCoach] = useState(null);
+  const [coachLoading, setCoachLoading] = useState(false);
+  const [autoRun, setAutoRun] = useState(false);
+  const audioRef = useRef(null);
+  const autoRunRef = useRef(false);
+
+  useEffect(() => {
+    fetch("/api/mock-interview")
+      .then((r) => r.json())
+      .then(setScript)
+      .catch(() => setError("Could not load mock interview script."));
+  }, []);
+
+  useEffect(() => {
+    autoRunRef.current = autoRun;
+  }, [autoRun]);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  if (!script) {
+    return <p className="empty">{error || "Loading mock interview…"}</p>;
+  }
+
+  const step = script.steps[index];
+  const atEnd = index >= script.steps.length - 1;
+
+  async function coachForText(text) {
+    setCoachLoading(true);
+    try {
+      const res = await fetch("/api/brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          transcript: `Interviewer asked: ${text}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Brief failed");
+      setCoach(data);
+      onBrief?.(data);
+    } catch (err) {
+      setError(err.message || "Coaching failed");
+    } finally {
+      setCoachLoading(false);
+    }
+  }
+
+  async function playStep(stepIndex = index, { advance = false } = {}) {
+    const current = script.steps[stepIndex];
+    if (!current) return;
+    setError("");
+    setPlaying(true);
+    setIndex(stepIndex);
+
+    try {
+      const res = await fetch("/api/mock-interview/speak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stepId: current.id }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `TTS failed (${res.status})`);
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      // Kick off coaching while the question is spoken.
+      coachForText(current.text);
+
+      await new Promise((resolve, reject) => {
+        audio.onended = resolve;
+        audio.onerror = () => reject(new Error("Audio playback failed"));
+        audio.play().catch(reject);
+      });
+
+      URL.revokeObjectURL(url);
+
+      if (advance || autoRunRef.current) {
+        const next = stepIndex + 1;
+        if (next < script.steps.length) {
+          await new Promise((r) => setTimeout(r, 1200));
+          await playStep(next, { advance: autoRunRef.current });
+        } else {
+          setAutoRun(false);
+        }
+      }
+    } catch (err) {
+      setError(err.message || "Could not play mock question");
+      setAutoRun(false);
+    } finally {
+      setPlaying(false);
+    }
+  }
+
+  return (
+    <section className="mock">
+      <div className="control-bar">
+        <div>
+          <p className="label">{script.title}</p>
+          <p className="hint">
+            Grok voice interviewer (<strong>{script.voiceId}</strong> /{" "}
+            {script.interviewerName}). {script.instructions}
+          </p>
+        </div>
+        <div className="actions">
+          <button
+            className="primary"
+            disabled={playing}
+            onClick={() => playStep(index)}
+          >
+            {playing ? "Speaking…" : "Ask this question"}
+          </button>
+          <button
+            className="ghost"
+            disabled={playing || index === 0}
+            onClick={() => {
+              setCoach(null);
+              setIndex((i) => Math.max(0, i - 1));
+            }}
+          >
+            Previous
+          </button>
+          <button
+            className="ghost"
+            disabled={playing || atEnd}
+            onClick={() => {
+              setCoach(null);
+              setIndex((i) => Math.min(script.steps.length - 1, i + 1));
+            }}
+          >
+            Next
+          </button>
+          <button
+            className={autoRun ? "danger" : "ghost"}
+            disabled={playing && !autoRun}
+            onClick={() => {
+              if (autoRun) {
+                setAutoRun(false);
+                if (audioRef.current) audioRef.current.pause();
+                return;
+              }
+              setAutoRun(true);
+              playStep(index, { advance: true });
+            }}
+          >
+            {autoRun ? "Stop auto-run" : "Auto-run mock"}
+          </button>
+        </div>
+      </div>
+
+      {error ? <p className="error">{error}</p> : null}
+
+      <div className="live-grid">
+        <div className="panel">
+          <div className="panel-head">
+            <h2>
+              Question {index + 1} / {script.steps.length}
+            </h2>
+            <span className="pulse">{playing ? "Grok speaking" : "Ready"}</span>
+          </div>
+          <p className="mock-question">“{step.text}”</p>
+          <ol className="mock-steps">
+            {script.steps.map((s, i) => (
+              <li key={s.id}>
+                <button
+                  className={`q-item ${i === index ? "open" : ""}`}
+                  disabled={playing}
+                  onClick={() => {
+                    setCoach(null);
+                    setIndex(i);
+                  }}
+                >
+                  <strong>
+                    {i + 1}. {s.id}
+                  </strong>
+                  <span>{s.text}</span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head">
+            <h2>Coach for this question</h2>
+            {coachLoading ? <span className="pulse">Briefing…</span> : null}
+          </div>
+          {!coach && !coachLoading ? (
+            <p className="empty">
+              Hit <strong>Ask this question</strong> to hear Grok voice and get
+              a live brief (SKED, Navy supervisor stories, honest PLC pivot).
+            </p>
+          ) : null}
+          {coach ? (
+            <article className="brief">
+              <div className="brief-top">
+                <h3>{coach.topic}</h3>
+                <span className={`conf conf-${coach.confidence}`}>
+                  {coach.confidence}
+                </span>
+              </div>
+              <p className="why">{coach.whyItMatters}</p>
+              <ul>
+                {coach.talkingPoints.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+              {coach.sayThis ? <blockquote>“{coach.sayThis}”</blockquote> : null}
+              {coach.storyToUse ? (
+                <p className="story-cue">Use story: {coach.storyToUse}</p>
+              ) : null}
+              {coach.watchOut ? (
+                <p className="watch">Watch out: {coach.watchOut}</p>
+              ) : null}
+            </article>
+          ) : null}
+        </div>
+      </div>
+    </section>
   );
 }
 

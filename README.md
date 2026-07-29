@@ -13,8 +13,9 @@ npm install
 npm run dev
 ```
 
-- UI: [http://localhost:5173](http://localhost:5173)
+- UI: [http://localhost:5173](http://localhost:5173) — start on **Mock interview** (Grok voice)
 - API/WS: [http://localhost:8787](http://localhost:8787)
+- Smoke test: `npm run smoke`
 
 Production-style local run:
 
@@ -40,7 +41,8 @@ Your `XAI_API_KEY` stays on the server. The browser never sees it; `/ws/stt` pro
 | --- | --- | --- |
 | `XAI_API_KEY` | _(required)_ | xAI API key |
 | `PORT` | `8787` | Server port |
-| `XAI_MODEL` | `grok-4.5` | Chat model for live briefs (`reasoning_effort: none` for speed) |
+| `XAI_MODEL` | `grok-4.5` | Chat model for live briefs |
+| `XAI_REASONING_EFFORT` | `low` | Fastest allowed effort on grok-4.5 (`low` / `medium` / `high`) |
 | `XAI_STT_SAMPLE_RATE` | `16000` | PCM sample rate sent to STT |
 
 If you want a cheaper/faster fallback, set `XAI_MODEL=grok-4.20-0309-non-reasoning` or `grok-4.3`.

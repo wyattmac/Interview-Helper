@@ -11,6 +11,7 @@ import {
   getCandidateProfile,
   getJobPrep,
 } from "./jobContext.js";
+import { getMockInterview, synthesizeSpeech } from "./mockInterview.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -60,6 +61,47 @@ app.get("/api/job-prep", (_req, res) => {
 
 app.get("/api/candidate", (_req, res) => {
   res.json(getCandidateProfile());
+});
+
+app.get("/api/mock-interview", (_req, res) => {
+  res.json(getMockInterview());
+});
+
+app.post("/api/mock-interview/speak", async (req, res) => {
+  if (!XAI_API_KEY) {
+    res.status(503).json({ error: "Missing XAI_API_KEY" });
+    return;
+  }
+
+  const script = getMockInterview();
+  const { stepId, text, voiceId } = req.body || {};
+  let speakText = typeof text === "string" ? text.trim() : "";
+
+  if (!speakText && stepId) {
+    const step = script.steps.find((s) => s.id === stepId);
+    speakText = step?.text || "";
+  }
+
+  if (!speakText) {
+    res.status(400).json({ error: "Provide stepId or text to speak." });
+    return;
+  }
+
+  try {
+    const audio = await synthesizeSpeech({
+      text: speakText,
+      apiKey: XAI_API_KEY,
+      voiceId: voiceId || script.voiceId || "rex",
+    });
+    res.setHeader("Content-Type", audio.contentType);
+    res.setHeader("Cache-Control", "no-store");
+    res.send(audio.buffer);
+  } catch (err) {
+    console.error("tts error", err);
+    res.status(502).json({
+      error: err instanceof Error ? err.message : "TTS failed",
+    });
+  }
 });
 
 app.post("/api/brief", async (req, res) => {
@@ -205,7 +247,8 @@ wss.on("connection", (client) => {
   });
 
   client.on("message", (data, isBinary) => {
-    if (isBinary || data instanceof Buffer) {
+    // In the `ws` library, text frames are still Buffer objects — use isBinary.
+    if (isBinary) {
       const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
       if (!ready) {
         pendingAudio.push(buf);
@@ -254,7 +297,7 @@ async function createTopicBrief(transcript) {
       model: XAI_MODEL,
       temperature: 0.4,
       max_tokens: 700,
-      reasoning_effort: "none",
+      reasoning_effort: process.env.XAI_REASONING_EFFORT || "low",
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: buildSystemPrompt() },

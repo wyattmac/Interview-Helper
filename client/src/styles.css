@@ -375,6 +375,35 @@ blockquote {
   animation: pulse 1.2s ease infinite;
 }
 
+.mock-question {
+  margin: 0 0 16px;
+  font-size: 1.15rem;
+  line-height: 1.45;
+  color: #ffe3b0;
+}
+
+.mock-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-height: 48vh;
+  overflow: auto;
+}
+
+.mock-steps .q-item span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mock-steps .q-item.open span {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+
 .prep-hero {
   padding: 22px 20px;
   margin-bottom: 14px;
