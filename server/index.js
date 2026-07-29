@@ -10,48 +10,58 @@ import {
   buildSystemPrompt,
   getCandidateProfile,
   getJobPrep,
+  getSttKeyterms,
 } from "./jobContext.js";
-import { getMockInterview, synthesizeSpeech } from "./mockInterview.js";
+import {
+  clearMockAudioCache,
+  getMockInterview,
+  synthesizeSpeech,
+} from "./mockInterview.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const DIST = join(ROOT, "dist");
 
 const PORT = Number(process.env.PORT || 8787);
+const HOST = process.env.HOST || "127.0.0.1";
 const XAI_API_KEY = process.env.XAI_API_KEY || "";
 const XAI_MODEL = process.env.XAI_MODEL || "grok-4.5";
 const SAMPLE_RATE = Number(process.env.XAI_STT_SAMPLE_RATE || 16000);
+const REASONING_EFFORT = process.env.XAI_REASONING_EFFORT || "low";
+const FETCH_TIMEOUT_MS = Number(process.env.XAI_FETCH_TIMEOUT_MS || 15000);
+const ALLOWED_ORIGINS = new Set(
+  (process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
+);
 
-const KEYTERMS = [
-  "Optum",
-  "UnitedHealth",
-  "Allen-Bradley",
-  "Rockwell",
-  "RSLogix",
-  "Studio 5000",
-  "Beckhoff",
-  "PLC",
-  "HMI",
-  "CMMS",
-  "SKED",
-  "SAP",
-  "pneumatic",
-  "480 volt",
-  "three phase",
-  "pill dispenser",
-  "mail order pharmacy",
-];
+// ~3 seconds of 16-bit mono audio at the configured sample rate.
+const MAX_PENDING_AUDIO_BYTES = SAMPLE_RATE * 2 * 3;
 
 const app = express();
-app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+app.use(
+  cors({
+    origin(origin, cb) {
+      // Allow same-origin / curl (no origin) and explicitly allowed dev origins.
+      if (!origin || ALLOWED_ORIGINS.size === 0 || ALLOWED_ORIGINS.has(origin)) {
+        cb(null, true);
+        return;
+      }
+      cb(new Error("Not allowed by CORS"));
+    },
+  }),
+);
+app.use(express.json({ limit: "256kb" }));
 
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
     hasApiKey: Boolean(XAI_API_KEY),
     model: XAI_MODEL,
+    reasoningEffort: REASONING_EFFORT,
     sampleRate: SAMPLE_RATE,
+    host: HOST,
   });
 });
 
@@ -73,25 +83,24 @@ app.post("/api/mock-interview/speak", async (req, res) => {
     return;
   }
 
+  // stepId-only: never accept arbitrary text, so the key can't be used as a
+  // general-purpose TTS spend surface if the port is reached.
+  const { stepId } = req.body || {};
   const script = getMockInterview();
-  const { stepId, text, voiceId } = req.body || {};
-  let speakText = typeof text === "string" ? text.trim() : "";
+  const step = script.steps.find((s) => s.id === stepId);
 
-  if (!speakText && stepId) {
-    const step = script.steps.find((s) => s.id === stepId);
-    speakText = step?.text || "";
-  }
-
-  if (!speakText) {
-    res.status(400).json({ error: "Provide stepId or text to speak." });
+  if (!step) {
+    res.status(400).json({ error: "Unknown stepId." });
     return;
   }
 
   try {
     const audio = await synthesizeSpeech({
-      text: speakText,
+      text: step.text,
       apiKey: XAI_API_KEY,
-      voiceId: voiceId || script.voiceId || "rex",
+      voiceId: script.voiceId || "rex",
+      cacheKey: step.id,
+      timeoutMs: FETCH_TIMEOUT_MS,
     });
     res.setHeader("Content-Type", audio.contentType);
     res.setHeader("Cache-Control", "no-store");
@@ -166,7 +175,7 @@ wss.on("connection", (client) => {
     vad_threshold: "0.05",
     endpointing: "300",
   });
-  for (const term of KEYTERMS) {
+  for (const term of getSttKeyterms()) {
     params.append("keyterm", term);
   }
 
@@ -177,6 +186,8 @@ wss.on("connection", (client) => {
 
   let ready = false;
   const pendingAudio = [];
+  let pendingBytes = 0;
+  let droppedBytes = 0;
 
   const forwardToClient = (payload) => {
     if (client.readyState === WebSocket.OPEN) {
@@ -202,7 +213,11 @@ wss.on("connection", (client) => {
         if (upstream.readyState === WebSocket.OPEN) upstream.send(chunk);
       }
       pendingAudio.length = 0;
-      forwardToClient({ type: "session.ready" });
+      pendingBytes = 0;
+      forwardToClient({
+        type: "session.ready",
+        droppedAudioMs: Math.round((droppedBytes / 2 / SAMPLE_RATE) * 1000),
+      });
       return;
     }
 
@@ -243,6 +258,7 @@ wss.on("connection", (client) => {
   });
 
   upstream.on("close", () => {
+    forwardToClient({ type: "session.closed" });
     if (client.readyState === WebSocket.OPEN) client.close();
   });
 
@@ -251,7 +267,14 @@ wss.on("connection", (client) => {
     if (isBinary) {
       const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
       if (!ready) {
+        // Bound the pre-ready buffer so a slow upstream can't balloon memory.
         pendingAudio.push(buf);
+        pendingBytes += buf.length;
+        while (pendingBytes > MAX_PENDING_AUDIO_BYTES && pendingAudio.length > 0) {
+          const dropped = pendingAudio.shift();
+          pendingBytes -= dropped.length;
+          droppedBytes += dropped.length;
+        }
         return;
       }
       if (upstream.readyState === WebSocket.OPEN) upstream.send(buf);
@@ -286,28 +309,35 @@ wss.on("connection", (client) => {
 });
 
 async function createTopicBrief(transcript) {
-  const response = await fetch("https://api.x.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${XAI_API_KEY}`,
-      "Content-Type": "application/json",
-      "x-grok-conv-id": "interview-helper-optum-est",
-    },
-    body: JSON.stringify({
-      model: XAI_MODEL,
-      temperature: 0.4,
-      max_tokens: 700,
-      reasoning_effort: process.env.XAI_REASONING_EFFORT || "low",
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: buildSystemPrompt() },
-        {
-          role: "user",
-          content: `Latest interview transcript window:\n\n${transcript}\n\nProduce the coaching JSON now.`,
-        },
-      ],
-    }),
-  });
+  const run = () =>
+    fetch("https://api.x.ai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${XAI_API_KEY}`,
+        "Content-Type": "application/json",
+        "x-grok-conv-id": "interview-helper-optum-est",
+      },
+      body: JSON.stringify({
+        model: XAI_MODEL,
+        temperature: 0.3,
+        max_tokens: 450,
+        reasoning_effort: REASONING_EFFORT,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: buildSystemPrompt() },
+          {
+            role: "user",
+            content: `Latest interview transcript window:\n\n${transcript}\n\nProduce the coaching JSON now.`,
+          },
+        ],
+      }),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+
+  let response = await run();
+  if (!response.ok && response.status >= 500) {
+    response = await run(); // one retry on transient upstream failures
+  }
 
   if (!response.ok) {
     const body = await response.text();
@@ -318,12 +348,12 @@ async function createTopicBrief(transcript) {
   const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error("Empty model response");
 
-  const parsed = JSON.parse(content);
+  const parsed = parseJsonLoose(content);
   return {
     topic: String(parsed.topic || "General discussion"),
     whyItMatters: String(parsed.whyItMatters || ""),
     talkingPoints: Array.isArray(parsed.talkingPoints)
-      ? parsed.talkingPoints.map(String).slice(0, 6)
+      ? parsed.talkingPoints.map(String).slice(0, 3)
       : [],
     sayThis: String(parsed.sayThis || ""),
     watchOut: String(parsed.watchOut || ""),
@@ -336,9 +366,32 @@ async function createTopicBrief(transcript) {
   };
 }
 
-server.listen(PORT, () => {
-  console.log(`Interview helper listening on http://localhost:${PORT}`);
+function parseJsonLoose(content) {
+  try {
+    return JSON.parse(content);
+  } catch {
+    const match = content.match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    throw new Error("Model returned non-JSON brief");
+  }
+}
+
+server.listen(PORT, HOST, () => {
+  console.log(`Interview helper listening on http://${HOST}:${PORT}`);
   if (!XAI_API_KEY) {
     console.warn("WARNING: XAI_API_KEY is not set. Live listen will not work.");
   }
 });
+
+// Warm the TTS cache so the first mock question plays instantly.
+if (XAI_API_KEY) {
+  clearMockAudioCache();
+  const script = getMockInterview();
+  synthesizeSpeech({
+    text: script.steps[0].text,
+    apiKey: XAI_API_KEY,
+    voiceId: script.voiceId || "rex",
+    cacheKey: script.steps[0].id,
+    timeoutMs: FETCH_TIMEOUT_MS,
+  }).catch(() => {});
+}

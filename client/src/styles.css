@@ -447,6 +447,57 @@ blockquote {
   color: var(--amber);
 }
 
+.cheat-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: rgba(226, 165, 74, 0.08);
+  border: 1px solid rgba(226, 165, 74, 0.28);
+  color: #ffe3b0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: rise 0.6s ease both;
+}
+
+.hero-coach {
+  margin: 14px 0;
+  padding: 16px;
+  background: linear-gradient(160deg, rgba(226, 165, 74, 0.12), rgba(62, 207, 154, 0.08));
+  border: 1px solid rgba(226, 165, 74, 0.4);
+  box-shadow: var(--shadow);
+  animation: rise 0.35s ease both;
+}
+
+.hero-coach h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+.say-this {
+  margin: 10px 0;
+  padding: 14px 16px;
+  font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+  line-height: 1.4;
+  font-weight: 600;
+  background: var(--amber-dim);
+  border-left: 4px solid var(--amber);
+  color: #ffe9c4;
+}
+
+.brief-hero ul {
+  margin-top: 10px;
+}
+
+.brief-hero .why,
+.brief-hero .watch,
+.brief-hero .story-cue {
+  font-size: 0.9rem;
+}
+
 .proof-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

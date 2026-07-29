@@ -4,7 +4,7 @@ import { writeFileSync, unlinkSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const BASE = process.env.SMOKE_BASE || "http://localhost:8787";
+const BASE = process.env.SMOKE_BASE || "http://127.0.0.1:8787";
 const API_KEY = process.env.XAI_API_KEY;
 
 function assert(cond, msg) {
