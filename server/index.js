@@ -6,7 +6,11 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import cors from "cors";
 import { WebSocketServer, WebSocket } from "ws";
-import { buildSystemPrompt, getJobPrep } from "./jobContext.js";
+import {
+  buildSystemPrompt,
+  getCandidateProfile,
+  getJobPrep,
+} from "./jobContext.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -51,6 +55,10 @@ app.get("/api/health", (_req, res) => {
 
 app.get("/api/job-prep", (_req, res) => {
   res.json(getJobPrep());
+});
+
+app.get("/api/candidate", (_req, res) => {
+  res.json(getCandidateProfile());
 });
 
 app.post("/api/brief", async (req, res) => {
@@ -275,6 +283,7 @@ async function createTopicBrief(transcript) {
       : [],
     sayThis: String(parsed.sayThis || ""),
     watchOut: String(parsed.watchOut || ""),
+    storyToUse: String(parsed.storyToUse || ""),
     confidence: ["high", "medium", "low"].includes(parsed.confidence)
       ? parsed.confidence
       : "medium",

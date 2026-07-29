@@ -45,6 +45,16 @@ Your `XAI_API_KEY` stays on the server. The browser never sees it; `/ws/stt` pro
 
 If the default model isn’t available on your account, set `XAI_MODEL` to another chat model from the [xAI console](https://console.x.ai/) (for example `grok-4.5`).
 
+## Personalized for Wyatt Locklear
+
+The coach is loaded with your resume history (`data/candidate-profile.json`):
+
+- **Lead stories:** Navy ET3 on USS James E. Williams (97% availability, CASREPs, $1.5M parts), BAE electronics tech with controlled procedures
+- **Bridge:** inventory/docs → CMMS/SAP; watchstanding → 2nd-shift radio calls
+- **Stay honest:** don’t invent Studio 5000 / pharmacy OEM hours; pivot to learning speed + real diagnostics
+
+Prep tab shows your STAR stories and “Your version” answers for likely questions.
+
 ## Interview cheat-sheet (study this)
 
 **Role facts to memorize**

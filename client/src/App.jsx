@@ -7,6 +7,7 @@ export default function App() {
   const [tab, setTab] = useState("live");
   const [health, setHealth] = useState(null);
   const [prep, setPrep] = useState(null);
+  const [candidate, setCandidate] = useState(null);
   const [listening, setListening] = useState(false);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
@@ -32,6 +33,11 @@ export default function App() {
       .then((r) => r.json())
       .then(setPrep)
       .catch(() => setPrep(null));
+
+    fetch("/api/candidate")
+      .then((r) => r.json())
+      .then(setCandidate)
+      .catch(() => setCandidate(null));
   }, []);
 
   useEffect(() => {
@@ -307,6 +313,9 @@ export default function App() {
                     {b.sayThis ? (
                       <blockquote>“{b.sayThis}”</blockquote>
                     ) : null}
+                    {b.storyToUse ? (
+                      <p className="story-cue">Use story: {b.storyToUse}</p>
+                    ) : null}
                     {b.watchOut ? (
                       <p className="watch">Watch out: {b.watchOut}</p>
                     ) : null}
@@ -317,17 +326,21 @@ export default function App() {
           </div>
         </section>
       ) : (
-        <PrepView prep={prep} />
+        <PrepView prep={prep} candidate={candidate} />
       )}
     </div>
   );
 }
 
-function PrepView({ prep }) {
+function PrepView({ prep, candidate }) {
   const [openQ, setOpenQ] = useState(0);
+  const [openStory, setOpenStory] = useState(0);
   if (!prep) return <p className="empty">Loading prep…</p>;
   const { role, mustSell, preferred, likelyQuestions, technicalFlashcards, answerFormulas, questionsToAskThem, dayInLife } =
     prep;
+  const answersByQ = new Map(
+    (candidate?.personalizedAnswers || []).map((a) => [a.q, a.yourAnswer]),
+  );
 
   return (
     <section className="prep">
@@ -338,9 +351,71 @@ function PrepView({ prep }) {
           {role.location} · {role.schedule}
         </p>
         <p className="pay">{role.pay} · travel {role.travel}</p>
+        {candidate ? (
+          <p className="candidate-line">
+            Coaching for <strong>{candidate.name}</strong> — lead with Navy ET +
+            BAE electronics, bridge inventory/docs to CMMS, be honest on AB/Studio
+            5000 depth.
+          </p>
+        ) : null}
       </div>
 
       <div className="prep-grid">
+        {candidate ? (
+          <article className="panel wide">
+            <h3>Your proof points</h3>
+            <div className="proof-grid">
+              <div>
+                <h4>Lead with these</h4>
+                <ul>
+                  {candidate.bridgeLines.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4>Stay honest</h4>
+                <ul className="muted-list">
+                  {candidate.honestGaps.map((gap) => (
+                    <li key={gap}>{gap}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </article>
+        ) : null}
+
+        {candidate?.starStories ? (
+          <article className="panel wide">
+            <h3>Your STAR stories</h3>
+            <div className="q-list">
+              {candidate.starStories.map((story, idx) => (
+                <button
+                  key={story.id}
+                  className={`q-item ${openStory === idx ? "open" : ""}`}
+                  onClick={() => setOpenStory(idx)}
+                >
+                  <strong>{story.title}</strong>
+                  <span className="tags">
+                    Best for: {story.useFor.join(" · ")}
+                  </span>
+                  {openStory === idx ? (
+                    <span>
+                      <em>S:</em> {story.star.situation}
+                      <br />
+                      <em>T:</em> {story.star.task}
+                      <br />
+                      <em>A:</em> {story.star.action}
+                      <br />
+                      <em>R:</em> {story.star.result}
+                    </span>
+                  ) : null}
+                </button>
+              ))}
+            </div>
+          </article>
+        ) : null}
+
         <article className="panel">
           <h3>Sell these hard</h3>
           <ul>
@@ -380,6 +455,12 @@ function PrepView({ prep }) {
                     <em>What they want:</em> {item.intent}
                     <br />
                     <em>Answer shape:</em> {item.starHint}
+                    {answersByQ.get(item.q) ? (
+                      <>
+                        <br />
+                        <em>Your version:</em> {answersByQ.get(item.q)}
+                      </>
+                    ) : null}
                   </span>
                 ) : null}
               </button>
