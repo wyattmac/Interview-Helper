@@ -17,6 +17,11 @@ export default function VoiceMock() {
   const playbackRef = useRef(null);
   const turnsRef = useRef([]);
   const stoppingRef = useRef(false);
+  // Echo gate: while the interviewer is speaking (plus a short tail), mic
+  // frames are dropped so Grok can't hear its own voice on laptop speakers
+  // and start answering its own questions.
+  const echoGateRef = useRef(false);
+  const echoTailRef = useRef(null);
 
   useEffect(() => {
     turnsRef.current = turns;
@@ -29,6 +34,20 @@ export default function VoiceMock() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function openEchoGate() {
+    echoGateRef.current = true;
+    clearTimeout(echoTailRef.current);
+  }
+
+  function closeEchoGateWithTail() {
+    // Keep the gate closed briefly after Grok finishes so speaker ring-off
+    // and room echo don't leak in as a fake "user" utterance.
+    clearTimeout(echoTailRef.current);
+    echoTailRef.current = setTimeout(() => {
+      echoGateRef.current = false;
+    }, 800);
+  }
 
   function addTurn(role, text) {
     setTurns((prev) => {
@@ -61,6 +80,7 @@ export default function VoiceMock() {
         captureRef.current = await startPcmCapture({
           sampleRate: INPUT_RATE,
           onFrame: (buffer) => {
+            if (echoGateRef.current) return; // interviewer is talking — don't echo it back
             if (socket.readyState === WebSocket.OPEN) socket.send(buffer);
           },
           onError: (err) => setError(err.message),
@@ -76,6 +96,7 @@ export default function VoiceMock() {
       if (typeof event.data !== "string") {
         // Binary = assistant audio PCM24k
         playback.push(new Int16Array(event.data));
+        openEchoGate();
         setSpeaking(true);
         return;
       }
@@ -93,9 +114,13 @@ export default function VoiceMock() {
           // Kick off the interview (proxy turns this into user item + response.create).
           socket.send(JSON.stringify({ type: "interview_kickoff" }));
           break;
+        case "response.created":
+          openEchoGate();
+          break;
         case "response.output_audio.delta":
           if (msg.delta) {
             playback.push(base64ToInt16(msg.delta));
+            openEchoGate();
             setSpeaking(true);
           }
           break;
@@ -120,6 +145,7 @@ export default function VoiceMock() {
           break;
         case "response.done":
           setSpeaking(false);
+          closeEchoGateWithTail();
           break;
         case "error":
           setError(msg.message || msg.error?.message || "Voice error");
@@ -136,6 +162,8 @@ export default function VoiceMock() {
     };
 
     socket.onclose = () => {
+      clearTimeout(echoTailRef.current);
+      echoGateRef.current = false;
       if (!stoppingRef.current && state !== "error") {
         setError("Voice session ended unexpectedly.");
       }
@@ -175,7 +203,9 @@ export default function VoiceMock() {
         <p className="label">Two-way voice mock (Think Fast 2.0)</p>
         <p className="hint">
           Real conversation: Grok interviews you by voice, hears your answers,
-          and follows up. Use headphones so the mic only hears you.
+          and follows up. <strong>Use headphones</strong> — on speakers the mic
+          can hear Grok and it may talk to itself (echo gate helps, headphones
+          are better). Wait for Grok to finish before answering.
         </p>
         {model ? <p className="voice-model">model: {model}</p> : null}
       </div>
@@ -198,7 +228,9 @@ export default function VoiceMock() {
       {state === "live" ? (
         <div className="voice-live">
           <p className={`status ${speaking ? "status-listening" : ""}`}>
-            {speaking ? "Interviewer speaking…" : "Your turn — answer out loud"}
+            {speaking
+              ? "Interviewer speaking… (mic muted until they finish)"
+              : "Your turn — answer out loud"}
           </p>
           <div className="voice-transcript">
             {turns.length === 0 && !partial ? (
