@@ -1,0 +1,200 @@
+{
+  "name": "Wyatt M. Locklear",
+  "location": "Rowland, NC",
+  "phone": "(910) 736-5696",
+  "email": "locklearwyatt@gmail.com",
+  "headline": "Navy Communications Electronics Supervisor & Electronics Technician veteran → BAE electronics tech → field ops leader, targeting Optum Equipment Services Technician",
+  "education": [
+    "WGU — B.S. Business Management (expected Nov 2026)",
+    "FTCC — A.A.S. Civil Engineering Technology; A.A.S. Geomatics Technology (2023)",
+    "American Council on Education — 78 college credits for Navy training (2019)",
+    "USN Electronics Technician A-School + multiple communications / COMSEC / data-link NECs"
+  ],
+  "timeline": [
+    {
+      "org": "South Carolina Department of Transportation",
+      "title": "Engineering Technician III",
+      "dates": "Jan 2025 – Present",
+      "relevance": "supporting",
+      "bullets": [
+        "Maintain detailed project records, measurements, progress docs for active infrastructure work",
+        "Coordinate contractors, inspectors, labs, field teams, and management to keep work moving",
+        "Track quantities/status, document discrepancies, support compliance and audit readiness"
+      ]
+    },
+    {
+      "org": "M3 Land Surveying",
+      "title": "Crew Chief",
+      "dates": "May 2021 – Dec 2024",
+      "relevance": "supporting",
+      "bullets": [
+        "Led field crews, assigned daily work, coordinated schedules and equipment",
+        "Trained employees, reviewed quality, organized digital records and handoffs",
+        "Resolved field conflicts with clients, property owners, and contractors"
+      ]
+    },
+    {
+      "org": "BAE Systems",
+      "title": "SCA Electronics Technician II",
+      "dates": "May 2019 – May 2021",
+      "relevance": "primary",
+      "bullets": [
+        "Troubleshot mission-critical electronics under controlled procedures",
+        "Maintained accurate maintenance, parts, and quality records",
+        "Coordinated testing, repairs, documentation, and process improvements with engineers and customers"
+      ]
+    },
+    {
+      "org": "United States Navy — USS James E. Williams (DDG 95)",
+      "title": "Electronics Technician Third Class (E-4) / Communications Electronics Supervisor",
+      "dates": "Jun 2013 – May 2019",
+      "relevance": "primary",
+      "bullets": [
+        "Communications Electronics Supervisor for shipboard communications / electronics on an AEGIS destroyer (~350 personnel)",
+        "Used SKED as the CMMS for scheduled maintenance, work packages, spot checks, and maintenance documentation",
+        "Full-scope preventive and corrective maintenance; 156 repairs, 40 spot checks, 1000+ equipment validations; ~97% equipment availability on Middle East / Asia deployment",
+        "TVS / Digital Modular Radio / Digital Voice Recorder SME; corrected Category II/III casualty reports",
+        "Stood Electrical Systems (ESS) Supervisor watch underway",
+        "Managed repair parts inventory/requisitions for two divisions (>$1.5M); saved ~$126K by streamlining inventory",
+        "Trained and qualified CSOSS supervisors/technicians; Work Center Supervisor / Team Leader / QA Craftsman",
+        "Antenna removals/installs, HF/VHF/UHF radio repair, SHF terminal reconfiguration after modem failure to restore IP services"
+      ]
+    }
+  ],
+  "technicalStrengths": [
+    "Complex diagnostics, fault isolation, and test equipment on electronic systems",
+    "Communications Electronics Supervisor — ownership of uptime, priorities, and technician direction",
+    "SKED CMMS: scheduled maintenance, work packages, spot checks, closeout documentation",
+    "Preventive + corrective maintenance under readiness pressure",
+    "Parts / inventory / requisition control and work-priority management",
+    "Safety, OSH, risk assessment, quality assurance, controlled procedures",
+    "Training / supervising multidisciplinary technicians",
+    "Cooling systems, antennas, synchros & servos, PLC exposure (Navy core competencies)",
+    "Microsoft Office / Excel / documentation discipline",
+    "Shift/watchstanding culture — nights, weekends, underway operations"
+  ],
+  "honestGaps": [
+    "Recent years (surveying / SCDOT) are less electronics-floor focused — lead with Navy + BAE first",
+    "Do not claim packaging/pharmacy automation OEMs or pill-dispenser brands unless true",
+    "Do not invent Allen-Bradley / Studio 5000 depth — say PLC exposure + fast learner + ask about their stack",
+    "Industrial 3-phase 480V plant experience may be thinner than pure factory techs — bridge via shipboard electrical systems, ESS supervisor watch, LOTO/safety mindset, and motor/servo/cooling work",
+    "CMMS/SAP: lead with Navy SKED experience; map to their CMMS/SAP and ask which system Charlotte uses — do not pretend you already run SAP daily",
+    "Secret clearance listed as expiring 2023 — do not present as current unless renewed"
+  ],
+  "bridgeLines": [
+    "I spent six years as a Navy Communications Electronics Supervisor keeping mission-critical communications and electronics up on a destroyer — same urgency as keeping a pharmacy line running: diagnose fast, restore safely, document everything.",
+    "In the Navy I lived in SKED as our CMMS — scheduling maintenance, working packages, spot checks, and closing out work. That is the same work-order discipline Optum wants in CMMS or SAP.",
+    "At BAE I followed controlled procedures on electronics repair with strict parts and quality records — that reinforces the CMMS habit from SKED.",
+    "I'm comfortable on nights/watches and radio-style priority calls; Communications Electronics Supervisor ownership and ESS supervisor watch prepared me for 2nd-shift service response.",
+    "I may not have lived on a pill-packaging OEM every day, but I know how to learn a platform fast, isolate electrical/electronic/mechanical faults, and keep availability high."
+  ],
+  "starStories": [
+    {
+      "id": "availability",
+      "title": "97% equipment availability on deployment",
+      "useFor": ["troubleshooting", "uptime", "pressure", "maintenance"],
+      "star": {
+        "situation": "USS James E. Williams deployment to Middle East/Asia — communications readiness was non-negotiable.",
+        "task": "As Communications Electronics Supervisor, keep exterior/interior communications gear available while standing watch and owning corrective maintenance.",
+        "action": "Drove SKED scheduled maintenance, fault-isolated TVS/DMR/recorder issues, completed 156 repairs and 1000 validations, escalated CASREPs when needed, trained techs so coverage didn't depend on one person.",
+        "result": "Held about 97% equipment availability through the deployment."
+      }
+    },
+    {
+      "id": "casualty",
+      "title": "Category II/III casualty report fixes",
+      "useFor": ["root cause", "complex diagnostics", "ownership"],
+      "star": {
+        "situation": "Multiple Category II/III casualty reports on tactical switching / digital radio / voice recording gear.",
+        "task": "As TVS SME, find and correct faults that were hurting combat-systems communications capability.",
+        "action": "Used prints, system knowledge, and systematic fault isolation rather than parts-swapping; coordinated with the work center and documented corrections.",
+        "result": "Personally identified and corrected several CASREP-level faults and restored capability."
+      }
+    },
+    {
+      "id": "sked",
+      "title": "SKED CMMS as Communications Electronics Supervisor",
+      "useFor": ["CMMS", "SAP", "work orders", "documentation", "scheduled maintenance"],
+      "star": {
+        "situation": "As Communications Electronics Supervisor on USS James E. Williams, maintenance had to be planned, executed, and documented for combat-systems readiness.",
+        "task": "Use SKED (Navy CMMS) to drive scheduled maintenance, spot checks, and corrective work closeout for communications electronics.",
+        "action": "Opened and worked maintenance in SKED, tracked due/overdue actions, recorded completions, and kept the work center audit-ready while still answering casualties.",
+        "result": "Supported ~97% equipment availability with documented preventive and corrective maintenance — directly transferable to Optum CMMS/SAP work orders."
+      }
+    },
+    {
+      "id": "parts",
+      "title": "Repair parts program / $1.5M inventory",
+      "useFor": ["CMMS", "SAP", "parts inventory", "documentation"],
+      "star": {
+        "situation": "Two electronics divisions needed accurate repair parts, tools, and material support alongside SKED maintenance execution.",
+        "task": "Administer inventory, distribution, and replenishment as Repair Parts Program Administrator.",
+        "action": "Processed hundreds of requisitions, tracked usage, and streamlined stock so money wasn't tied up in dead inventory.",
+        "result": "Managed requisitions valued over $1.5M and saved roughly $126K through inventory streamlining — pairs with SKED for full CMMS + parts story."
+      }
+    },
+    {
+      "id": "modem",
+      "title": "Restored ship IP after modem failure",
+      "useFor": ["creative troubleshooting", "under pressure", "service calls"],
+      "star": {
+        "situation": "Major modem failure cut IP services the ship needed.",
+        "task": "Restore connectivity without waiting forever for a perfect part solution.",
+        "action": "Reconfigured an SHF terminal to a commercial satellite path to bring services back.",
+        "result": "Restored IP services and kept operations moving — example of practical restore-first thinking with documentation/control."
+      }
+    },
+    {
+      "id": "bae",
+      "title": "BAE controlled electronics repair",
+      "useFor": ["procedures", "quality records", "teamwork with engineers"],
+      "star": {
+        "situation": "BAE Systems SCA Electronics Technician II supporting mission-critical electronics.",
+        "task": "Troubleshoot and repair while protecting quality, parts traceability, and customer requirements.",
+        "action": "Followed controlled procedures, coordinated with engineers/techs/customers, kept maintenance and parts records accurate.",
+        "result": "Reliable repairs with audit-ready documentation — transferable to pharmacy automation change control."
+      }
+    },
+    {
+      "id": "crew-chief",
+      "title": "Crew Chief prioritization",
+      "useFor": ["prioritization", "radio calls", "leadership", "training"],
+      "star": {
+        "situation": "M3 Land Surveying — multiple field jobs, equipment, and people competing for attention.",
+        "task": "As Crew Chief, keep the right work moving safely and on time.",
+        "action": "Assigned daily work, sequenced equipment, trained crew, and communicated blockers early to office/clients.",
+        "result": "Projects completed accurately/on time — use this for triage/communication, not as your main tech proof."
+      }
+    }
+  ],
+  "personalizedAnswers": [
+    {
+      "q": "Walk me through how you troubleshoot a machine that suddenly stops on the line.",
+      "yourAnswer": "I'd start with safety — don't chase a running fault if LOTO or an e-stop condition applies. Then I'd define the symptom: alarms, last product, last change, what the HMI/PLC is throwing. On the ship and at BAE I learned to check utilities and inputs before swapping assemblies — power, air if present, sensors/permissives, then isolate electrical vs mechanical vs controls. I'd restore in a controlled way, verify, and close the work order with what I found so the next tech isn't starting from zero. Closest story: CASREP-level TVS/radio faults and the modem/IP restore under pressure."
+    },
+    {
+      "q": "Tell me about a time you diagnosed an electrical / electronics issue.",
+      "yourAnswer": "Navy destroyer communications gear — I was the TVS subject-matter tech and helped drive Category II/III casualty corrections on tactical switching and digital radio systems. Method was systematic fault isolation with procedures and test equipment, not guesswork. At BAE I kept that same controlled-procedure habit. I'm honest that my deepest hours are electronics/communications systems and shipboard electrical supervision, and I'm ready to ramp on their specific 480V motor-control and pharmacy OEM prints."
+    },
+    {
+      "q": "How do you use CMMS or SAP day to day?",
+      "yourAnswer": "In the Navy I used SKED as our CMMS every day as a Communications Electronics Supervisor — scheduling preventive maintenance, working packages, doing spot checks, and closing out corrective jobs so the record matched reality. I also ran repair-parts support for two divisions — requisitions over $1.5M and about $126K saved by cleaning up inventory — plus BAE maintenance/parts/quality records. I haven't lived in SAP daily, but SKED gave me real CMMS habits: the work order is the source of truth for problem, cause, parts, time, and follow-up. I'll map that straight onto whatever CMMS or SAP Charlotte uses."
+    },
+    {
+      "q": "Tell me about your leadership / supervisor experience.",
+      "yourAnswer": "I was a Communications Electronics Supervisor in the Navy — owning work-center priorities, training technicians, and keeping communications electronics available for the ship. That meant assigning work, checking quality, using SKED to stay ahead of maintenance, and answering high-priority casualties without losing the schedule. Later as a survey Crew Chief I led field crews the same way: clear assignments, safety, and communication when something blocked the job."
+    },
+    {
+      "q": "Have you worked with Allen-Bradley / Studio 5000?",
+      "yourAnswer": "Be honest: I have PLC exposure from Navy electronics maintenance competencies and I'm comfortable reading control logic, I/O, and HMI alarms conceptually, but I will not oversell Studio 5000 hours I don't have. Pivot: I'm a trained electronics tech who learns platforms quickly, and I want to know which AB/Beckhoff assets are on the Charlotte line so I can prioritize that in onboarding."
+    },
+    {
+      "q": "This role is Sun–Thu 2nd shift with occasional Saturday OT. Are you flexible?",
+      "yourAnswer": "Yes — say it clearly. Navy watchstanding and deployment operations mean I'm used to nights, weekends, and showing up when the mission needs coverage. Confirm Sun–Thu 1400–2330 and occasional Saturday mornings work for you."
+    },
+    {
+      "q": "Why Optum / mail-order pharmacy automation?",
+      "yourAnswer": "I want back onto equipment that matters when it goes down. Navy/BAE taught me that availability protects the mission; here availability protects patients getting medications. Charlotte is workable from my NC base, 2nd shift fits how I already work, and the mix of electrical, electronics, and automation is where I do my best work."
+    }
+  ]
+}
