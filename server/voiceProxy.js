@@ -86,7 +86,14 @@ export function attachVoiceProxy(client, { apiKey }) {
         session: {
           voice: "rex",
           instructions: buildInterviewerInstructions(),
-          turn_detection: { type: "server_vad", silence_duration_ms: 900 },
+          // Higher threshold so quiet speaker echo is less likely to register
+          // as the user speaking; the client also drops mic frames while the
+          // interviewer talks (echo gate).
+          turn_detection: {
+            type: "server_vad",
+            silence_duration_ms: 900,
+            threshold: 0.85,
+          },
           audio: {
             input: {
               format: { type: "audio/pcm", rate: 16000 },
